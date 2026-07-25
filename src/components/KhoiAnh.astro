@@ -1,0 +1,94 @@
+---
+import { anhToiUu } from '../lib/img';
+
+interface Anh {
+  src: string;
+  alt?: string;
+}
+
+interface Props {
+  kieu: 'luong' | 'luoi-2' | 'luoi-3' | 'luoi-lech' | 'ben-trai' | 'ben-phai';
+  chu_thich?: string;
+  chu?: string;
+  anh: Anh[];
+}
+
+const { kieu, chu_thich, chu, anh } = Astro.props;
+
+// Ảnh nằm một bên thì nhỏ hơn (~w_700), ảnh luồng/lưới thì rộng hơn.
+const motBen = kieu === 'ben-trai' || kieu === 'ben-phai';
+const w = motBen ? 700 : kieu === 'luong' ? 1100 : 700;
+---
+
+{motBen ? (
+  <figure class={`khoi mot-ben ${kieu}`}>
+    <div class="anh">
+      <img src={anhToiUu(anh[0].src, { w })} alt={anh[0].alt ?? ''} loading="lazy" />
+      {chu_thich ? <figcaption>{chu_thich}</figcaption> : null}
+    </div>
+    {chu ? <div class="chu" set:html={chu.replace(/\n/g, '<br>')} /> : null}
+  </figure>
+) : (
+  <figure class={`khoi ${kieu}`}>
+    <div class="luoi">
+      {anh.map((a) => (
+        <img src={anhToiUu(a.src, { w })} alt={a.alt ?? ''} loading="lazy" />
+      ))}
+    </div>
+    {chu_thich ? <figcaption>{chu_thich}</figcaption> : null}
+  </figure>
+)}
+
+<style>
+  .khoi {
+    margin: 2em 0;
+  }
+  .khoi figcaption {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    text-align: center;
+    font-style: italic;
+  }
+  .khoi img {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+  }
+
+  /* Lưới: 2 hoặc 3 ảnh đều nhau, tự xuống 1 cột trên điện thoại */
+  .luoi {
+    display: grid;
+    gap: 12px;
+  }
+  .luoi-2 .luoi { grid-template-columns: repeat(2, 1fr); }
+  .luoi-3 .luoi { grid-template-columns: repeat(3, 1fr); }
+
+  /* 1 ảnh lớn bên trái, các ảnh còn lại xếp dọc bên phải */
+  .luoi-lech .luoi { grid-template-columns: 1.6fr 1fr; }
+  .luoi-lech .luoi img:first-child { grid-row: 1 / -1; height: 100%; object-fit: cover; }
+
+  @media (max-width: 640px) {
+    .luoi-2 .luoi,
+    .luoi-3 .luoi,
+    .luoi-lech .luoi { grid-template-columns: 1fr; }
+    .luoi-lech .luoi img:first-child { grid-row: auto; }
+  }
+
+  /* Ảnh một bên, chữ bên kia */
+  .mot-ben {
+    display: grid;
+    gap: 20px;
+    align-items: center;
+  }
+  .mot-ben.ben-phai { grid-template-columns: 1fr 0.9fr; }
+  .mot-ben.ben-trai { grid-template-columns: 0.9fr 1fr; }
+  .mot-ben.ben-trai .anh { order: -1; }
+  .mot-ben .chu { font-size: 1.02rem; line-height: 1.7; }
+
+  @media (max-width: 720px) {
+    .mot-ben.ben-phai,
+    .mot-ben.ben-trai { grid-template-columns: 1fr; }
+    .mot-ben.ben-trai .anh { order: 0; }
+  }
+</style>

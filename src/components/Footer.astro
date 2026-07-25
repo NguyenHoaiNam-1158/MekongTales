@@ -1,0 +1,73 @@
+---
+const social = [
+  { label: 'YouTube', href: 'https://www.youtube.com/@MekoGen' },
+  { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61591928760332' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@mekogen8' },
+];
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <nav class="foot-nav">
+      <a href="/">Trang chủ</a>
+      <a href="/about_us">Về chúng tôi</a>
+    </nav>
+    <div class="social">
+      {social.map((s) => (
+        <a href={s.href} target="_blank" rel="noopener">{s.label}</a>
+      ))}
+    </div>
+    <p class="contact">
+      <a href="mailto:mekongtales@gmail.com">mekongtales@gmail.com</a>
+      <span class="sep">|</span>
+      331 Đỗ Mười, phường An Phú Đông, Tp. Hồ Chí Minh
+      <span class="sep">|</span>
+      <a href="tel:0965052847">0965052847</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--river-deep);
+    color: #cfe0dc;
+    margin-top: 72px;
+    padding: 40px 0;
+  }
+  .foot-nav {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .foot-nav a {
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+  }
+  .foot-nav a:hover { color: var(--marigold); text-decoration: none; }
+  .social {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .social a {
+    color: var(--river-deep);
+    background: var(--paper);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .social a:hover { background: var(--marigold); text-decoration: none; }
+  .contact {
+    text-align: center;
+    font-size: 0.92rem;
+    margin: 0;
+    line-height: 1.9;
+  }
+  .contact a { color: #e3ddcf; }
+  .sep { margin: 0 10px; opacity: 0.5; }
+</style>

@@ -1,0 +1,72 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PodcastCard from '../../components/PodcastCard.astro';
+
+const podcasts = (await getCollection('podcast'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf());
+---
+<BaseLayout title="Podcast" mo_ta="Các tập podcast của Mekong Tales về văn hóa và con người vùng sông Tiền.">
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow">Nghe</span>
+      <h1>Podcast</h1>
+      <p>Những câu chuyện kể bằng âm thanh từ dòng sông di sản.</p>
+    </div>
+  </section>
+
+  <section class="wrap list">
+    {podcasts.length === 0 ? (
+      <p class="empty">
+        Chưa có tập podcast nào. Thêm một file <code>.md</code> vào
+        <code>src/content/podcast/</code> — nhớ dán <strong>mã video 11 ký tự</strong>,
+        không dán cả link.
+      </p>
+    ) : (
+      <div class="grid">
+        {podcasts.map((p) => (
+          <PodcastCard
+            title={p.data.title}
+            youtube_id={p.data.youtube_id}
+            mo_ta={p.data.mo_ta}
+            orientation="portrait"
+          />
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .page-head {
+    background: var(--river);
+    color: var(--paper);
+    padding: 56px 0;
+  }
+  .page-head h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 8px 0 10px; }
+  .page-head p { max-width: 640px; color: #e6e0d2; margin: 0; }
+
+  .list { margin-top: 48px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 220px);
+    gap: 20px;
+    justify-content: start;
+  }
+  @media (max-width: 460px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .empty {
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    padding: 24px;
+    border-radius: 10px;
+  }
+  code {
+    background: rgba(15, 76, 71, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>

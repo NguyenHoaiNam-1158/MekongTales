@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import KhoiAnh from '../../components/KhoiAnh.astro';
+import { anhToiUu } from '../../lib/img';
+import { tachDoan } from '../../lib/thanBai';
+
+const TEN_CHUYEN_MUC = {
+  'ki-uc': 'Kí ức',
+  'am-thuc': 'Ẩm thực',
+  'lang-nghe': 'Làng nghề',
+  'lich-su': 'Lịch sử',
+};
+
+export async function getStaticPaths() {
+  const choXemNhap = import.meta.env.DEV;
+  const baiViet = (await getCollection('bai-viet')).filter(
+    (bai) => choXemNhap || !bai.data.draft
+  );
+  return baiViet.map((bai) => ({ params: { slug: bai.id }, props: { bai } }));
+}
+
+const { bai } = Astro.props;
+const { title, mo_ta, anh_bia, anh_bia_alt, chuyen_muc, tac_gia, ngay_dang, khoi_anh } = bai.data;
+const ngay = ngay_dang.toLocaleDateString('vi-VN');
+
+// Tách thân bài thành đoạn, gắn mỗi khối ảnh vào sau đoạn tương ứng.
+const doan = tachDoan(bai.body ?? '');
+const khoiTheoDoan = new Map<number, typeof khoi_anh>();
+for (const k of khoi_anh) {
+  const arr = khoiTheoDoan.get(k.sau_doan) ?? [];
+  arr.push(k);
+  khoiTheoDoan.set(k.sau_doan, arr);
+}
+const khoiDauBai = khoiTheoDoan.get(0) ?? [];
+---
+<BaseLayout title={title} mo_ta={mo_ta}>
+  <article class="article">
+    <div class="wrap head">
+      <span class="eyebrow">{TEN_CHUYEN_MUC[chuyen_muc]}</span>
+      <h1>{title}</h1>
+      <p class="meta">{tac_gia} · {ngay}</p>
+    </div>
+
+    {anh_bia ? (
+      <div class="wrap">
+        <img class="cover" src={anhToiUu(anh_bia, { w: 1200 })} alt={anh_bia_alt} loading="lazy" />
+      </div>
+    ) : null}
+
+    <div class="wrap prose">
+      {khoiDauBai.map((k) => <KhoiAnh {...k} />)}
+      {doan.map((d, i) => (
+        <>
+          <div set:html={marked.parse(d)} />
+          {(khoiTheoDoan.get(i + 1) ?? []).map((k) => <KhoiAnh {...k} />)}
+        </>
+      ))}
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .head { margin: 48px auto 0; max-width: 900px; }
+  .head h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 10px 0; }
+  .meta { color: var(--ink-soft); }
+  .cover {
+    width: 100%;
+    max-width: 900px;
+    margin: 28px auto 0;
+    border-radius: 12px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .prose {
+    max-width: 900px;
+    margin: 36px auto 0;
+    font-size: 1.08rem;
+  }
+  .prose :global(p) { margin: 0 0 1.3em; }
+  .prose :global(h2) { margin-top: 1.6em; font-size: 1.6rem; }
+  .prose :global(img) { max-width: 100%; border-radius: 10px; }
+</style>

@@ -1,0 +1,68 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PodcastCard from '../../components/PodcastCard.astro';
+
+const phongSu = (await getCollection('phong-su'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf());
+---
+<BaseLayout title="Phóng sự" mo_ta="Phóng sự số về đời sống, văn hóa và con người vùng sông Tiền.">
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow">Xem</span>
+      <h1>Phóng sự</h1>
+      <p>Những thước phim ghi lại đời thực bên dòng sông di sản.</p>
+    </div>
+  </section>
+
+  <section class="wrap list">
+    {phongSu.length === 0 ? (
+      <p class="empty">
+        Chưa có phóng sự nào. Thêm một file <code>.md</code> vào
+        <code>src/content/phong-su/</code> — nhớ dán <strong>mã video 11 ký tự</strong>,
+        không dán cả link.
+      </p>
+    ) : (
+      <div class="grid">
+        {phongSu.map((p) => (
+          <PodcastCard
+            title={p.data.title}
+            youtube_id={p.data.youtube_id}
+            mo_ta={p.data.mo_ta}
+            orientation="landscape"
+          />
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .page-head {
+    background: var(--river);
+    color: var(--paper);
+    padding: 56px 0;
+  }
+  .page-head h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 8px 0 10px; }
+  .page-head p { max-width: 640px; color: #e6e0d2; margin: 0; }
+
+  .list { margin-top: 48px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .empty {
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    padding: 24px;
+    border-radius: 10px;
+  }
+  code {
+    background: rgba(15, 76, 71, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>

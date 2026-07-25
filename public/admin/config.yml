@@ -1,0 +1,170 @@
+backend:
+  name: github
+  repo: NguyenHoaiNam-1158/mekong-tales
+  # Phải khớp nhánh mà Cloudflare Pages build.
+  branch: main
+
+site_url: https://mekong-tales.pages.dev
+
+# Bài đăng thành Pull Request để duyệt. Nếu /admin lỗi khi mở, comment dòng này lại.
+publish_mode: editorial_workflow
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: doljk7ymy
+    api_key: 941225753785247
+
+collections:
+  - name: "bai-viet"
+    label: "Bài viết"
+    label_singular: "Bài viết"
+    folder: "src/content/bai-viet"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    preview_path: "bai-viet/{{slug}}"
+    summary: "{{title}} — {{chuyen_muc}}"
+    sortable_fields: ["ngay_dang", "title"]
+    view_groups:
+      - label: "Chuyên mục"
+        field: chuyen_muc
+    fields:
+      - { name: "title", label: "Tiêu đề", widget: "string" }
+      - { name: "mo_ta", label: "Mô tả ngắn", widget: "text", hint: "1–2 câu hiện trên thẻ bài viết và khi chia sẻ Facebook. Tối đa 200 ký tự, nên giữ dưới 160." }
+      - { name: "anh_bia", label: "Ảnh bìa", widget: "image", choose_url: true }
+      - { name: "anh_bia_alt", label: "Mô tả ảnh bìa", widget: "string", hint: "Mô tả cho người khiếm thị và cho Google. Ví dụ: Người thợ đang bào gỗ tại làng mộc Chợ Thủ." }
+      - name: "chuyen_muc"
+        label: "Chuyên mục"
+        widget: "select"
+        options:
+          - { label: "Kí ức Mekong", value: "ki-uc" }
+          - { label: "Ẩm thực Mekong", value: "am-thuc" }
+          - { label: "Làng nghề Mekong", value: "lang-nghe" }
+          - { label: "Lịch sử", value: "lich-su" }
+      - { name: "tags", label: "Thẻ", widget: "list", required: false, hint: "Ví dụ: tranh kiếng, thủ công, An Giang" }
+      - { name: "tac_gia", label: "Tác giả", widget: "string" }
+      - { name: "ngay_dang", label: "Ngày đăng", widget: "datetime", date_format: "DD/MM/YYYY", time_format: false, format: "YYYY-MM-DD" }
+      - { name: "noi_bat", label: "Đưa lên Câu chuyện nổi bật", widget: "boolean", default: false }
+      - { name: "draft", label: "Bản nháp (chưa hiện trên web)", widget: "boolean", default: true }
+      - name: "dia_diem"
+        label: "Địa điểm"
+        widget: "object"
+        required: false
+        collapsed: true
+        hint: "Điền để bài hiện lên bản đồ làng nghề dọc sông Tiền."
+        fields:
+          - { name: "ten", label: "Tên địa điểm", widget: "string", required: false }
+          - { name: "tinh", label: "Tỉnh/Thành", widget: "string", required: false }
+          - { name: "lat", label: "Vĩ độ", widget: "number", value_type: "float", required: false }
+          - { name: "lng", label: "Kinh độ", widget: "number", value_type: "float", required: false }
+      - name: "khoi_anh"
+        label: "Khối ảnh trong bài"
+        label_singular: "Khối ảnh"
+        widget: "list"
+        required: false
+        collapsed: true
+        summary: "{{fields.kieu}} — sau đoạn {{fields.sau_doan}}"
+        hint: "Chèn cụm ảnh vào giữa bài. Đếm số đoạn văn trong Nội dung để biết chèn sau đoạn nào."
+        fields:
+          - name: "sau_doan"
+            label: "Chèn sau đoạn số"
+            widget: "number"
+            value_type: "int"
+            default: 1
+            min: 0
+            hint: "0 = đặt ngay đầu bài, trước đoạn 1."
+          - name: "kieu"
+            label: "Kiểu bố cục"
+            widget: "select"
+            options:
+              - { label: "Ảnh luồng (rộng hết bài)", value: "luong" }
+              - { label: "Lưới 2 ảnh", value: "luoi-2" }
+              - { label: "Lưới 3 ảnh", value: "luoi-3" }
+              - { label: "Ảnh bên trái, chữ bên phải", value: "ben-trai" }
+              - { label: "Ảnh bên phải, chữ bên trái", value: "ben-phai" }
+          - { name: "chu_thich", label: "Chú thích ảnh", widget: "string", required: false }
+          - name: "chu"
+            label: "Đoạn chữ đi kèm"
+            widget: "text"
+            required: false
+            hint: "Chỉ dùng cho kiểu ảnh một bên. Đoạn chữ này sẽ chảy cạnh ảnh."
+          - name: "anh"
+            label: "Ảnh"
+            label_singular: "Ảnh"
+            widget: "list"
+            min: 1
+            summary: "{{fields.alt}}"
+            fields:
+              - { name: "src", label: "Ảnh", widget: "image", choose_url: true }
+              - { name: "alt", label: "Mô tả ảnh", widget: "string", default: "" }
+      - { name: "body", label: "Nội dung", widget: "markdown" }
+
+  - name: "podcast"
+    label: "Podcast"
+    label_singular: "Tập podcast"
+    folder: "src/content/podcast"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { name: "title", label: "Tiêu đề", widget: "string", hint: "Ví dụ: PODCAST | CẦN THƠ — Chuyện chợ nổi Cái Răng" }
+      - { name: "mo_ta", label: "Mô tả ngắn", widget: "text" }
+      - { name: "youtube_id", label: "Mã video YouTube", widget: "string", pattern: ['^[A-Za-z0-9_-]{11}$', 'Chỉ dán MÃ video, không dán cả link. Với https://youtube.com/shorts/EwPUttypYDs thì mã là EwPUttypYDs'] }
+      - { name: "anh_bia", label: "Ảnh bìa", widget: "image", required: false, hint: "Bỏ trống sẽ tự lấy thumbnail YouTube." }
+      - name: "chuyen_muc"
+        label: "Chuyên mục"
+        widget: "select"
+        required: false
+        options:
+          - { label: "Kí ức Mekong", value: "ki-uc" }
+          - { label: "Ẩm thực Mekong", value: "am-thuc" }
+          - { label: "Làng nghề Mekong", value: "lang-nghe" }
+          - { label: "Lịch sử", value: "lich-su" }
+      - { name: "ngay_dang", label: "Ngày đăng", widget: "datetime", date_format: "DD/MM/YYYY", time_format: false, format: "YYYY-MM-DD" }
+      - { name: "draft", label: "Bản nháp", widget: "boolean", default: true }
+
+  - name: "phong-su"
+    label: "Phóng sự"
+    label_singular: "Phóng sự"
+    folder: "src/content/phong-su"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { name: "title", label: "Tiêu đề", widget: "string" }
+      - { name: "mo_ta", label: "Mô tả ngắn", widget: "text" }
+      - { name: "youtube_id", label: "Mã video YouTube", widget: "string", pattern: ['^[A-Za-z0-9_-]{11}$', 'Chỉ dán mã video, không dán cả link.'] }
+      - { name: "anh_bia", label: "Ảnh bìa", widget: "image", required: false }
+      - { name: "ngay_dang", label: "Ngày đăng", widget: "datetime", date_format: "DD/MM/YYYY", time_format: false, format: "YYYY-MM-DD" }
+      - { name: "draft", label: "Bản nháp", widget: "boolean", default: true }
+
+  - name: "thanh-vien"
+    label: "Nhóm"
+    label_singular: "Thành viên"
+    folder: "src/content/thanh-vien"
+    create: true
+    fields:
+      - { name: "title", label: "Họ tên", widget: "string" }
+      - { name: "vai_tro", label: "Vai trò", widget: "string" }
+      - { name: "anh", label: "Ảnh", widget: "image", required: false }
+      - { name: "thu_tu", label: "Thứ tự hiển thị", widget: "number", value_type: "int", default: 99 }
+      - { name: "giang_vien", label: "Là giảng viên hướng dẫn", widget: "boolean", default: false, hint: "Bật để hiện ở khối giảng viên thay vì khối thành viên nhóm." }
+      - { name: "body", label: "Giới thiệu", widget: "markdown", required: false }
+
+  - name: "cai-dat"
+    label: "Cài đặt"
+    files:
+      - name: "chung"
+        label: "Thông tin chung"
+        file: "src/content/cai-dat/chung.yml"
+        fields:
+          - { name: "slogan", label: "Slogan", widget: "string" }
+          - { name: "gioi_thieu", label: "Giới thiệu dự án", widget: "text" }
+          - { name: "email", label: "Email", widget: "string" }
+          - { name: "dien_thoai", label: "Điện thoại", widget: "string" }
+          - { name: "dia_chi", label: "Địa chỉ", widget: "string" }
+          - { name: "youtube", label: "Link YouTube", widget: "string" }
+          - { name: "facebook", label: "Link Facebook", widget: "string" }
+          - { name: "tiktok", label: "Link TikTok", widget: "string" }

@@ -1,0 +1,122 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { CHUYEN_MUC, type ChuyenMucSlug, type ChuyenMucInfo } from '../../lib/chuyenMuc';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('bai-viet')).filter((b) => !b.data.draft);
+  return Object.keys(CHUYEN_MUC)
+    .filter((slug) => slug !== 'lich-su') 
+    .map((slug) => ({
+      params: { chuyenMuc: slug },
+      props: {
+        bai: all
+          .filter((b) => b.data.chuyen_muc === slug)
+          .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf()),
+      },
+    }));
+}
+
+const { chuyenMuc } = Astro.params;
+const { bai } = Astro.props;
+const info: ChuyenMucInfo = CHUYEN_MUC[chuyenMuc as ChuyenMucSlug];
+
+const heroTitle = info.hero_title ?? info.ten;
+const eyebrow = info.hero_title ? info.ten : 'Chuyên mục';
+const mucBaiViet = info.muc_bai_viet ?? 'Bài viết';
+---
+<BaseLayout title={info.ten} mo_ta={info.mo_ta}>
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow">{eyebrow}</span>
+      <h1>{heroTitle}</h1>
+      <p>{info.mo_ta}</p>
+    </div>
+  </section>
+
+  {info.intro && (
+    <section class="wrap intro">
+      {info.intro.map((doan) => <p>{doan}</p>)}
+    </section>
+  )}
+
+  <section class="wrap list">
+    <h2 class="list-title">{mucBaiViet}</h2>
+    {bai.length === 0 ? (
+      <p class="empty">
+        Chưa có bài viết nào trong chuyên mục này. Thêm một file <code>.md</code> vào
+        <code>src/content/bai-viet/</code> với <code>chuyen_muc: "{chuyenMuc}"</code> để bắt đầu.
+      </p>
+    ) : (
+      <div class="cards">
+        {bai.map((b) => <ArticleCard bai={b} />)}
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .page-head {
+    background: var(--river);
+    color: var(--paper);
+    padding: 56px 0;
+  }
+  .page-head h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 8px 0 10px;
+    letter-spacing: 0.02em;
+  }
+  .page-head p { max-width: 640px; color: #e6e0d2; margin: 0; }
+
+  .intro {
+    margin-top: 40px;
+    max-width: 760px;
+  }
+  .intro p {
+    font-size: 1.12rem;
+    line-height: 1.8;
+    color: var(--ink);
+    margin: 0 0 1.2em;
+  }
+  .intro p:first-child::first-letter {
+    font-family: var(--font-display);
+    font-size: 3.2rem;
+    font-weight: 600;
+    float: left;
+    line-height: 0.8;
+    padding: 6px 10px 0 0;
+    color: var(--river);
+  }
+
+  .list { margin-top: 48px; }
+  .list-title {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+  .empty {
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    padding: 24px;
+    border-radius: 10px;
+  }
+  code {
+    background: rgba(15, 76, 71, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>

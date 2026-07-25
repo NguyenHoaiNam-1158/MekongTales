@@ -1,0 +1,228 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import PodcastCard from '../components/PodcastCard.astro';
+import { getCollection } from 'astro:content';
+
+// Câu chuyện nổi bật: đọc từ file .md, lấy các bài có noi_bat: true
+const cauChuyenNoiBat = (await getCollection('bai-viet'))
+  .filter((b) => !b.data.draft && b.data.noi_bat)
+  .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf())
+  .slice(0, 3);
+
+// Podcast mới: đọc từ file .md, lấy 4 tập mới nhất
+const podcasts = (await getCollection('podcast'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf())
+  .slice(0, 4);
+---
+<BaseLayout title="Trang chủ">
+  <!-- 1. HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <h1>Mekong Tales</h1>
+      <p class="slogan">Chuyện kể từ dòng sông di sản</p>
+      <p class="intro">
+        Sông Tiền là một trong những nhánh chính của hệ thống sông Mekong khi chảy vào
+        Việt Nam, đóng vai trò quan trọng trong đời sống kinh tế, văn hóa và xã hội của
+        vùng Đồng bằng sông Cửu Long. Trải qua nhiều thế hệ, dòng sông không chỉ nuôi
+        dưỡng những cánh đồng lúa, vườn cây ăn trái và làng nghề truyền thống mà còn hình
+        thành nên bản sắc văn hóa sông nước đặc trưng của miền Tây Nam Bộ. Những tập tục
+        sinh hoạt ven sông, các câu chuyện mưu sinh, kinh nghiệm sản xuất, ký ức cộng đồng
+        và tinh thần nghĩa tình của người dân đã trở thành những giá trị văn hóa đặc sắc
+        cần được gìn giữ và phát huy.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. NÚT KHẢO SÁT -->
+  <section class="wrap survey">
+    <a class="survey-btn" href="https://forms.gle/BkhN3hgq9o4rAo748" target="_blank" rel="noopener">
+      Khảo sát cải tiến website của chúng tôi tại đây
+    </a>
+  </section>
+
+  <!-- 3. CÂU CHUYỆN NỔI BẬT (đọc từ .md) -->
+  <section id="cau-chuyen-noi-bat" class="wrap block">
+    <h2 class="block-title">Câu chuyện nổi bật</h2>
+    {cauChuyenNoiBat.length === 0 ? (
+      <p class="empty">
+        Chưa có câu chuyện nổi bật nào. Đặt <code>noi_bat: true</code> trong một bài viết
+        (<code>src/content/bai-viet/</code>) để nó hiện ở đây.
+      </p>
+    ) : (
+      <div class="cards">
+        {cauChuyenNoiBat.map((b) => <ArticleCard bai={b} />)}
+      </div>
+    )}
+  </section>
+
+  <!-- 4. PODCAST MỚI (còn hardcode) -->
+  <section id="podcast-moi" class="wrap block">
+    <div class="block-head">
+      <h2>Podcast mới</h2>
+      <a class="more" href="/podcast">Xem thêm →</a>
+    </div>
+    {podcasts.length === 0 ? (
+      <p class="empty">
+        Chưa có tập podcast nào. Thêm file <code>.md</code> vào
+        <code>src/content/podcast/</code> để nó hiện ở đây.
+      </p>
+    ) : (
+      <div class="podcasts">
+        {podcasts.map((p) => (
+          <PodcastCard
+            title={p.data.title}
+            youtube_id={p.data.youtube_id}
+            orientation="portrait"
+          />
+        ))}
+      </div>
+    )}
+  </section>
+
+  <!-- 5. GIỚI THIỆU DỰ ÁN -->
+  <section class="wrap block">
+    <h2 class="block-title">Giới thiệu dự án</h2>
+    <p class="project">
+      Mekong Tales được xây dựng nhằm ghi nhận, lưu giữ và lan tỏa những câu chuyện đời
+      thực tại khu vực sông Tiền thông qua hình thức phóng sự số. Dự án khai thác những nét
+      đẹp văn hóa truyền thống, tập tục địa phương, câu chuyện truyền cảm hứng của người dân
+      và các mô hình thích ứng hiệu quả trước biến đổi khí hậu để phát triển kinh tế địa
+      phương. Thông qua việc ứng dụng công nghệ số và các nền tảng truyền thông hiện đại, dự
+      án hướng đến xây dựng một kho tư liệu số về văn hóa và con người vùng sông Tiền, góp
+      phần kết nối thế hệ trẻ với quê hương, quảng bá hình ảnh miền Tây Nam Bộ và lan tỏa
+      những giá trị phát triển bền vững đến cộng đồng.
+    </p>
+  </section>
+
+  <!-- 6. THEO DÕI THÊM + VIDEO -->
+  <section class="wrap block">
+    <h2 class="block-title">Theo dõi thêm các video tại các kênh sau</h2>
+    <ul class="channels">
+      <li><a href="https://www.youtube.com/@MekoGen" target="_blank" rel="noopener">YouTube: Mekong Tales</a></li>
+      <li><a href="https://www.facebook.com/profile.php?id=61591928760332" target="_blank" rel="noopener">Facebook: Mekong Tales</a></li>
+      <li><a href="https://www.tiktok.com/@mekogen8" target="_blank" rel="noopener">TikTok: Mekong Tales</a></li>
+    </ul>
+    <div class="feature-video">
+      <iframe
+        src="https://www.youtube.com/embed/Xr6sjY31of4"
+        title="Mekong Tales"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* HERO */
+  .hero {
+    background: var(--river);
+    color: var(--paper);
+    padding: 80px 0;
+  }
+  .hero h1 { font-size: clamp(2.8rem, 7vw, 4.5rem); margin: 0; }
+  .slogan {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.35rem;
+    color: var(--marigold);
+    margin: 6px 0 28px;
+  }
+  .intro { max-width: 760px; color: #e6e0d2; margin: 0; }
+
+  /* SURVEY */
+  .survey { margin-top: 40px; text-align: center; }
+  .survey-btn {
+    display: inline-block;
+    background: var(--marigold);
+    color: var(--river-deep);
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.92rem;
+  }
+  .survey-btn:hover { text-decoration: none; filter: brightness(1.05); }
+
+  /* BLOCKS */
+  .block { margin-top: 60px; }
+  .block-title {
+    font-size: 1.8rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .block-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .block-head h2 { font-size: 1.8rem; margin: 0; }
+  .more { font-size: 0.92rem; font-weight: 500; white-space: nowrap; }
+
+  /* CARDS (câu chuyện nổi bật) */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .empty {
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    padding: 22px;
+    border-radius: 10px;
+  }
+
+  /* PODCASTS */
+  .podcasts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 200px);
+    gap: 16px;
+    justify-content: start;
+  }
+  @media (max-width: 460px) {
+    .podcasts { grid-template-columns: 1fr; }
+  }
+  .podcast {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .pod-embed { aspect-ratio: 9 / 16; background: #000; }
+  .pod-embed iframe { width: 100%; height: 100%; border: 0; }
+  .podcast h3 {
+    font-size: 1rem;
+    padding: 14px 16px;
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+
+  /* PROJECT + CHANNELS */
+  .project { max-width: 820px; color: var(--ink-soft); }
+  .channels { margin: 0 0 24px; padding-left: 20px; line-height: 2; }
+  .feature-video {
+    aspect-ratio: 16 / 9;
+    max-width: 820px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+  }
+  .feature-video iframe { width: 100%; height: 100%; border: 0; }
+
+  code {
+    background: rgba(255,255,255,0.15);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  .empty code { background: rgba(15, 76, 71, 0.1); }
+</style>

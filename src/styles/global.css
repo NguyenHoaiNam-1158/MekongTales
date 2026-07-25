@@ -1,0 +1,66 @@
+:root {
+  --paper: #f4ecdd;
+  --paper-2: #ebe0ca;
+  --ink: #211b15;
+  --ink-soft: #5f5647;
+  --river: #0f4c47;
+  --river-deep: #0a332f;
+  --marigold: #d19420;
+  --line: #d8ccb2;
+
+  --font-display: 'Lora', Georgia, serif;
+  --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+
+  --wrap: 1280px;   /* ← ĐỔI SỐ NÀY để giãn/thu hẹp toàn site (vd 1440px, hoặc 100%) */
+
+  /* Bề rộng khối đọc bài — tự co theo màn hình, chặn trần 760px */
+  --doc: min(760px, 100%);
+
+  /* Khoảng cách dọc co giãn mượt giữa các mục (nhỏ trên điện thoại, to trên desktop) */
+  --space: clamp(40px, 6vw, 72px);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: clamp(16px, 0.9rem + 0.3vw, 18px);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.4em;
+}
+
+a { color: var(--river); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img { max-width: 100%; display: block; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); }
+
+/* Căn đều hai bên (justify) cho các khối văn bản dài */
+.intro, .project, .prose {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--marigold);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a, .card { transition: transform 0.18s ease, color 0.18s ease; }
+}

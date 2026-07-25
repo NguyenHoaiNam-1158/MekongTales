@@ -1,0 +1,307 @@
+---
+---
+
+<div class="chat" data-chat>
+  <button class="nut-mo" data-mo aria-expanded="false" aria-controls="khung-chat">
+    <span aria-hidden="true">💬</span>
+    <span class="nhan">Hỏi về sông Tiền</span>
+  </button>
+
+  <div class="khung" id="khung-chat" data-khung hidden>
+    <header>
+      <div>
+        <strong>Trợ lý Mekong Tales</strong>
+        <small>Chỉ trả lời dựa trên bài viết của trang</small>
+      </div>
+      <button class="dong" data-dong aria-label="Đóng">✕</button>
+    </header>
+
+    <div class="loi-thoai" data-loi-thoai aria-live="polite">
+      <div class="hang bot">
+        <span class="ai">Trợ lý</span>
+        <div class="tin">
+          Chào bạn. Mình có thể trả lời các câu hỏi về ẩm thực, làng nghề và vùng đất ven sông Tiền,
+          dựa trên nội dung đã đăng trên trang.
+        </div>
+      </div>
+    </div>
+
+    <form class="nhap" data-form>
+      <input
+        type="text"
+        name="cau_hoi"
+        placeholder="Hủ tiếu Mỹ Tho có gì đặc biệt?"
+        maxlength="500"
+        autocomplete="off"
+        required
+      />
+      <button type="submit" data-gui>Gửi</button>
+    </form>
+
+    <p class="rieng-tu">Câu hỏi được gửi tới dịch vụ AI bên thứ ba để xử lý.</p>
+  </div>
+</div>
+
+<script>
+  const goc = document.querySelector('[data-chat]');
+  if (goc) {
+    const nutMo = goc.querySelector('[data-mo]') as HTMLButtonElement;
+    const khung = goc.querySelector('[data-khung]') as HTMLElement;
+    const nutDong = goc.querySelector('[data-dong]') as HTMLButtonElement;
+    const loiThoai = goc.querySelector('[data-loi-thoai]') as HTMLElement;
+    const form = goc.querySelector('[data-form]') as HTMLFormElement;
+    const nutGui = goc.querySelector('[data-gui]') as HTMLButtonElement;
+    const o = form.querySelector('input') as HTMLInputElement;
+
+    const doiTrangThai = (mo: boolean) => {
+      khung.hidden = !mo;
+      nutMo.setAttribute('aria-expanded', String(mo));
+      if (mo) o.focus();
+    };
+
+    nutMo.addEventListener('click', () => doiTrangThai(Boolean(khung.hidden)));
+    nutDong.addEventListener('click', () => doiTrangThai(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !khung.hidden) doiTrangThai(false);
+    });
+
+    const themTin = (loai: string, html: string) => {
+      const hang = document.createElement('div');
+      hang.className = `hang ${loai}`;
+      const nhan = loai.startsWith('nguoi') ? 'Bạn' : 'Trợ lý';
+      hang.innerHTML = `<span class="ai">${nhan}</span><div class="tin">${html}</div>`;
+      loiThoai.appendChild(hang);
+      loiThoai.scrollTop = loiThoai.scrollHeight;
+      return hang;
+    };
+
+    // Gemini tra loi bang Markdown. Escape truoc, roi chi doi vai the an toan.
+    const dinhDang = (s: string) => {
+      const d = thoat(s)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[Nguồn (\d+)\]/g, '<sup class="danh-so">$1</sup>');
+      const khoi = d.split(/\n{2,}/).map((k) => {
+        const dong = k.split('\n');
+        if (dong.every((l) => /^\s*[*-]\s+/.test(l))) {
+          return '<ul>' + dong.map((l) => `<li>${l.replace(/^\s*[*-]\s+/, '')}</li>`).join('') + '</ul>';
+        }
+        return `<p>${dong.join('<br>')}</p>`;
+      });
+      return khoi.join('');
+    };
+
+    const thoat = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => 
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string
+      );
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const cauHoi = o.value.trim();
+      if (!cauHoi) return;
+
+      themTin('nguoi', `<p>${thoat(cauHoi)}</p>`);
+      o.value = '';
+      o.disabled = true;
+      nutGui.disabled = true;
+      const dangCho = themTin('bot dang-cho', '<p>Đang tìm trong tư liệu…</p>');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cau_hoi: cauHoi }),
+        });
+        const data = await res.json();
+        dangCho.remove();
+
+        if (data.loi) {
+          themTin('bot loi', `<p>${thoat(data.loi)}</p>`);
+        } else {
+          const nguon = (data.nguon ?? [])
+            .map(
+              (n: { url: string; tieu_de: string }) =>
+                `<a href="${n.url}">${thoat(n.tieu_de)}</a>`
+            )
+            .join(' · ');
+          themTin(
+            'bot',
+            dinhDang(data.tra_loi) +
+              (nguon ? `<div class="nguon">Nguồn: ${nguon}</div>` : '')
+          );
+        }
+      } catch {
+        dangCho.remove();
+        themTin('bot loi', '<p>Không kết nối được. Bạn kiểm tra mạng rồi thử lại nhé.</p>');
+      } finally {
+        o.disabled = false;
+        nutGui.disabled = false;
+        o.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .chat {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 60;
+    font-family: inherit;
+  }
+
+  .nut-mo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 999px;
+    background: var(--river);
+    color: var(--paper);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
+  }
+  .nut-mo:hover { background: var(--river-deep); }
+
+  .khung {
+    display: flex;
+    flex-direction: column;
+    width: min(380px, calc(100vw - 40px));
+    height: min(540px, calc(100vh - 120px));
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgb(0 0 0 / 0.22);
+  }
+  .khung[hidden] { display: none; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--river);
+    color: var(--paper);
+  }
+  header small { display: block; opacity: 0.8; font-size: 0.75rem; }
+
+  .dong {
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .loi-thoai {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--paper-2);
+  }
+
+  /* Dùng :global vì tin nhắn được tạo bằng createElement nên không mang
+     thuộc tính scope của Astro — thiếu nó thì mọi kiểu dưới đây bị bỏ qua. */
+  .loi-thoai :global(.hang) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 85%;
+  }
+  .loi-thoai :global(.hang.bot) { align-self: flex-start; }
+  .loi-thoai :global(.hang.nguoi) { align-self: flex-end; align-items: flex-end; }
+
+  .loi-thoai :global(.ai) {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 0 4px;
+  }
+
+  .loi-thoai :global(.tin) {
+    padding: 10px 14px;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+  .loi-thoai :global(.hang.bot .tin) {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px 12px 12px 2px;
+  }
+  .loi-thoai :global(.hang.nguoi .tin) {
+    background: var(--river);
+    color: var(--paper);
+    border-radius: 12px 12px 2px 12px;
+  }
+  .loi-thoai :global(.hang.nguoi .ai) { color: var(--river); }
+  .loi-thoai :global(.hang.dang-cho .tin) { opacity: 0.6; font-style: italic; }
+  .loi-thoai :global(.hang.loi .tin) { border-color: #c0563f; color: #8c3a28; }
+
+  .loi-thoai :global(.tin p) { margin: 0 0 8px; }
+  .loi-thoai :global(.tin p:last-child) { margin-bottom: 0; }
+  .loi-thoai :global(.tin ul) { margin: 0 0 8px; padding-left: 20px; }
+  .loi-thoai :global(.tin li) { margin-bottom: 4px; }
+  .loi-thoai :global(.tin strong) { font-weight: 600; }
+  .loi-thoai :global(.danh-so) {
+    font-size: 0.7rem;
+    color: var(--marigold);
+    font-weight: 600;
+    padding-left: 1px;
+  }
+
+  .loi-thoai :global(.nguon) {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  .nhap { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+  .nhap input {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+  }
+  .nhap input:focus { outline: 2px solid var(--river); outline-offset: 1px; }
+  .nhap button {
+    min-height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 8px;
+    background: var(--river);
+    color: var(--paper);
+    font: inherit;
+    cursor: pointer;
+  }
+  .nhap button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .rieng-tu {
+    margin: 0;
+    padding: 0 12px 12px;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 480px) {
+    .nut-mo .nhan { display: none; }
+    .nut-mo { padding: 0 16px; }
+  }
+</style>

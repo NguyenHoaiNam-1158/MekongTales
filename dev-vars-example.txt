@@ -1,0 +1,6 @@
+# Chép file này thành .dev.vars để chạy thử ở máy.
+# .dev.vars đã nằm trong .gitignore, TUYỆT ĐỐI không commit.
+
+LLM_NHA_CUNG_CAP=gemini
+LLM_KHOA=dan-khoa-gemini-vao-day
+LLM_MODEL=gemini-2.5-flash

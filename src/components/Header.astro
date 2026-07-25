@@ -1,0 +1,243 @@
+---
+const path = Astro.url.pathname;
+---
+<header class="site-header">
+  <div class="wrap bar">
+    <a href="/" class="brand">
+      <span class="logo">MT</span>
+      <span>Mekong Tales</span>
+    </a>
+
+    <button
+      class="burger"
+      id="nav-toggle"
+      type="button"
+      aria-label="Mở menu"
+      aria-expanded="false"
+      aria-controls="site-nav"
+    >
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+      <span class="burger-line"></span>
+    </button>
+
+    <nav id="site-nav">
+      <div class="item has-sub">
+        <a href="/" class:list={['nav-link', { active: path === '/' }]}>Trang chủ</a>
+        <div class="sub">
+          <a href="/#cau-chuyen-noi-bat">Câu chuyện nổi bật</a>
+          <a href="/#podcast-moi">Podcast mới</a>
+        </div>
+      </div>
+
+      <a href="/ki-uc" class:list={['nav-link', { active: path === '/ki-uc' }]}>Kí ức Mekong</a>
+      <a href="/am-thuc" class:list={['nav-link', { active: path === '/am-thuc' }]}>Ẩm thực Mekong</a>
+
+      <div class="item has-sub">
+        <a href="/lang-nghe" class:list={['nav-link', { active: path === '/lang-nghe' }]}>Làng nghề Mekong</a>
+        <div class="sub">
+          <a href="/lang-nghe">Bài viết</a>
+          <a href="/podcast">Podcast</a>
+          <a href="/phong-su">Phóng sự</a>
+        </div>
+      </div>
+
+      <a href="/lich-su" class:list={['nav-link', { active: path === '/lich-su' }]}>Lịch sử</a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector('.site-header');
+  const toggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('site-nav');
+
+  if (header && toggle && nav) {
+    let dangMo = false;
+
+    const capNhat = () => {
+      header.classList.toggle('open', dangMo);
+      toggle.setAttribute('aria-expanded', String(dangMo));
+      toggle.setAttribute('aria-label', dangMo ? 'Đóng menu' : 'Mở menu');
+    }
+
+    toggle.addEventListener('click', () => {
+      dangMo = !dangMo;
+      capNhat();
+    });
+
+    // Bấm vào một liên kết thì đóng menu
+    nav.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t instanceof Element && t.closest('a')) {
+        dangMo = false;
+        capNhat();
+      }
+    });
+
+    // Phím Esc đóng menu
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dangMo) {
+        dangMo = false;
+        capNhat();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    background: var(--river-deep);
+    border-bottom: 3px solid var(--marigold);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 68px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--paper);
+  }
+  .brand:hover { text-decoration: none; }
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--marigold);
+    color: var(--river-deep);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* ─── NÚT HAMBURGER (chỉ hiện trên màn hình hẹp) ─── */
+  .burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .burger-line {
+    display: block;
+    width: 24px;
+    height: 2px;
+    margin: 0 auto;
+    background: var(--paper);
+    border-radius: 2px;
+    transition: transform 0.22s ease, opacity 0.18s ease;
+  }
+  /* Ba vạch biến thành dấu X khi mở */
+  .site-header.open .burger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .site-header.open .burger-line:nth-child(2) { opacity: 0; }
+  .site-header.open .burger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ─── MENU ─── */
+  nav { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .item { position: relative; }
+  .nav-link {
+    display: inline-block;
+    color: #cfe0dc;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+  }
+  .nav-link:hover { color: #fff; text-decoration: none; background: rgba(255,255,255,0.08); }
+  .nav-link.active { color: var(--river-deep); background: var(--marigold); }
+
+  .sub {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 210px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 12px 30px rgba(10, 51, 47, 0.18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .has-sub:hover .sub,
+  .has-sub:focus-within .sub {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .sub a {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 7px;
+    color: var(--ink);
+    font-size: 0.92rem;
+  }
+  .sub a:hover { background: var(--paper-2); text-decoration: none; }
+
+  /* ─── MÀN HÌNH HẸP ─── */
+  @media (max-width: 860px) {
+    .burger { display: flex; }
+
+    nav {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 4px 0 16px;
+    }
+    .site-header.open nav { display: flex; }
+
+    .item { position: static; }
+    .nav-link {
+      display: block;
+      padding: 13px 4px;
+      border-radius: 8px;
+      font-size: 1.02rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-link.active { padding-left: 12px; }
+
+    .sub {
+      position: static;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      min-width: 0;
+      padding: 4px 0 8px 18px;
+    }
+    .sub a {
+      color: #a9c4bf;
+      padding: 9px 4px;
+      font-size: 0.95rem;
+    }
+    .sub a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  }
+
+  /* Tôn trọng người tắt hiệu ứng chuyển động */
+  @media (prefers-reduced-motion: reduce) {
+    .burger-line { transition: none; }
+  }
+</style>

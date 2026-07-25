@@ -1,0 +1,284 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { anhToiUu } from '../lib/img';
+
+
+const quyTrinh = [
+  { ten: 'Ghi nhận', anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768475/ghinhan_mcevj1.png' },
+  { ten: 'Số hóa', anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768477/sohoa_fqnryh.png' },
+  { ten: 'Lưu trữ', anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768475/luutru_wip9fi.png' },
+  { ten: 'Lan tỏa', anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768475/lantoa_xp7v3o.png' },
+];
+
+// 2. HỆ SINH THÁI
+const heSinhThai = [
+  {
+    tieu_de: 'Giáo dục trải nghiệm',
+    noi_dung:
+      'Hợp tác với các trường học để sử dụng tư liệu của Mekong Tales làm nguồn tài liệu tham khảo cho các buổi học thực tế về địa lý, văn hóa và môi trường.',
+  },
+  {
+    tieu_de: 'Thúc đẩy kinh tế bản địa',
+    noi_dung:
+      'Chúng tôi hỗ trợ quảng bá các mô hình kinh tế "thuận thiên" (như du lịch cộng đồng, sản phẩm làng nghề), tạo cầu nối giữa người sản xuất và doanh nghiệp/khách du lịch.',
+  },
+  {
+    tieu_de: 'Mạng lưới cộng tác viên',
+    noi_dung:
+      'Chúng tôi xây dựng cộng đồng thanh niên — nơi các bạn trẻ được rèn luyện kỹ năng truyền thông số, tư duy sáng tạo và ý thức trách nhiệm với quê hương.',
+  },
+];
+
+const soLieu = [
+  {
+    so: '',
+    anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768697/55.7_prndmi.png',
+    mo_ta:
+      'Người dùng cho biết những gì họ xem bị thiếu nội dung thực tế và không có cảm xúc thực về sự biến đổi khí hậu của môi trường.',
+  },
+  {
+    so: '',
+    anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768775/86.8_iswpvi.png',
+    mo_ta:
+      'Người trẻ hiện nay quan tâm sâu sắc đến các vấn đề môi trường, nhưng "bị rào cản" bởi các báo cáo số liệu khô khan.',
+  },
+  {
+    so: '',
+    anh: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784768775/95.1_lyzt2g.png',
+    mo_ta:
+      'Người khẳng định việc xây dựng một nền tảng truyền thông về khí hậu và văn hóa dành cho người trẻ là "Rất cần thiết".',
+  },
+];
+
+// Bài viết thuộc chuyên mục Lịch sử (nếu có) — hiện ở cuối trang
+const baiViet = (await getCollection('bai-viet'))
+  .filter((b) => !b.data.draft && b.data.chuyen_muc === 'lich-su')
+  .sort((a, b) => b.data.ngay_dang.valueOf() - a.data.ngay_dang.valueOf());
+---
+
+<BaseLayout
+  title="Lịch sử"
+  mo_ta="Hành trình của Mekong Tales: từ thực địa đến kỹ thuật số, hệ sinh thái và tầm nhìn dài hạn."
+>
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow">Chuyên mục</span>
+      <h1>Lịch sử</h1>
+      <p>Dòng chảy hình thành nên vùng đất, con người và chính dự án Mekong Tales.</p>
+    </div>
+  </section>
+
+  <section class="wrap block">
+    <div class="block-head-center">
+      <h2>Từ thực địa đến kỹ thuật số</h2>
+      <p class="lead">
+        Chúng tôi không chỉ kể chuyện, chúng tôi kiến tạo quy trình lưu trữ dữ liệu
+        bền vững qua 4 bước
+      </p>
+    </div>
+    <div class="steps">
+      {quyTrinh.map((b, i) => (
+        <div class="step">
+          <div class="step-img">
+            {b.anh ? (
+              <img src={anhToiUu(b.anh, { w: 400 })} alt={b.ten} loading="lazy" />
+            ) : (
+              <span class="step-no">{String(i + 1).padStart(2, '0')}</span>
+            )}
+          </div>
+          <h3>{b.ten}</h3>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- LỚP 2 — HỆ SINH THÁI -->
+  <section class="band">
+    <div class="wrap">
+      <h2 class="band-title">Hệ sinh thái Mekong Tales</h2>
+      <p class="band-lead">Mekong Tales — hệ sinh thái kết nối các giá trị bền vững:</p>
+      <div class="eco">
+        {heSinhThai.map((m) => (
+          <div class="eco-item">
+            <h3>{m.tieu_de}</h3>
+            <p>{m.noi_dung}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- LỚP 3 — SỐ LIỆU KHẢO SÁT -->
+  <section class="wrap block">
+    <div class="block-head-center">
+      <h2>Theo kết quả khảo sát thực tế</h2>
+    </div>
+    <div class="stats">
+      {soLieu.map((s) => (
+        <div class="stat">
+          {s.anh ? (
+            <img class="stat-img" src={anhToiUu(s.anh, { w: 500 })} alt={s.so} loading="lazy" />
+          ) : (
+            <span class="stat-no">{s.so}</span>
+          )}
+          <p>{s.mo_ta}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- LỚP 4 — TẦM NHÌN DÀI HẠN -->
+  <section class="band">
+    <div class="wrap">
+      <h2 class="band-title">Tầm nhìn dài hạn</h2>
+      <div class="vision">
+        <h3>Mở rộng dòng chảy di sản</h3>
+        <p>
+          Từ những câu chuyện khởi nguồn tại khu vực sông Tiền, Mekong Tales đặt mục tiêu
+          mở rộng mạng lưới đến toàn bộ vùng Đồng bằng sông Cửu Long (Bến Tre, Vĩnh Long,
+          Đồng Tháp, An Giang, Cần Thơ...). Chúng tôi hướng đến việc hình thành một hệ
+          thống tư liệu số quốc gia về văn hóa sông nước, là nền tảng tham chiếu cho bất
+          kỳ ai muốn tìm hiểu, nghiên cứu hoặc đầu tư vào sự phát triển bền vững của miền
+          Tây Nam Bộ trong tương lai.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BÀI VIẾT THUỘC CHUYÊN MỤC LỊCH SỬ (tự ẩn nếu chưa có bài) -->
+  {baiViet.length > 0 && (
+    <section class="wrap block">
+      <h2 class="list-title">Bài viết</h2>
+      <div class="cards">
+        {baiViet.map((b) => <ArticleCard bai={b} />)}
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .page-head {
+    background: var(--river);
+    color: var(--paper);
+    padding: 56px 0;
+  }
+  .page-head h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); margin: 8px 0 10px; }
+  .page-head p { max-width: 640px; color: #e6e0d2; margin: 0; }
+
+  .block { margin-top: 64px; }
+  .block-head-center { text-align: center; margin-bottom: 36px; }
+  .block-head-center h2 { font-size: clamp(1.6rem, 4vw, 2.1rem); margin: 0 0 10px; }
+  .lead { color: var(--ink-soft); max-width: 640px; margin: 0 auto; }
+
+  /* LỚP 1 — 4 bước */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .step { text-align: center; }
+  .step-img {
+    aspect-ratio: 1 / 1;
+    max-width: 260px;
+    margin: 0 auto 16px;
+    display: grid;
+    place-items: center;
+    background: var(--paper-2);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .step-img img { width: 100%; height: 100%; object-fit: contain; }
+  .step-no {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    color: var(--marigold);
+  }
+  .step h3 { font-size: 1.15rem; color: var(--river); margin: 0; }
+
+  /* LỚP 2 & 4 — dải nền */
+  .band {
+    background: var(--paper-2);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 56px 0;
+    margin-top: 64px;
+  }
+  .band-title {
+    text-align: center;
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    margin: 0 0 8px;
+  }
+  .band-lead { text-align: center; color: var(--ink-soft); margin: 0 0 32px; }
+  .eco {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  .eco-item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+  }
+  .eco-item h3 { font-size: 1.15rem; color: var(--river); margin: 0 0 8px; }
+  .eco-item p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    text-align: justify;
+  }
+
+  /* LỚP 3 — số liệu */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 36px;
+  }
+  .stat-img { width: 260; max-width: 260px; margin: 0 auto 12px; object-fit: contain; height: 90px; }
+  .stat-no {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 4.6rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--river);
+    margin-bottom: 14px;
+  }
+  .stat p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    text-align: justify;
+  }
+
+  /* LỚP 4 — tầm nhìn */
+  .vision { max-width: 900px; margin: 0 auto; }
+  .vision h3 { font-size: 1.2rem; color: var(--river); margin: 0 0 10px; }
+  .vision p { margin: 0; color: var(--ink-soft); text-align: justify; }
+
+  /* Bài viết */
+  .list-title {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .steps { grid-template-columns: repeat(2, 1fr); }
+    .eco, .stats { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .steps { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>

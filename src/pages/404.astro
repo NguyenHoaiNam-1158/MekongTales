@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CHUYEN_MUC, type ChuyenMucSlug } from '../lib/chuyenMuc';
+
+// Đọc từ nguồn duy nhất nên thêm chuyên mục mới thì trang này tự cập nhật.
+const chuyenMuc = Object.entries(CHUYEN_MUC) as [ChuyenMucSlug, { ten: string }][];
+---
+
+<BaseLayout
+  title="Không tìm thấy trang"
+  mo_ta="Trang bạn tìm không tồn tại hoặc đã được chuyển đi nơi khác."
+>
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow">Lỗi 404</span>
+      <h1>Con nước đã đổi dòng</h1>
+      <p>
+        Trang bạn tìm không tồn tại, hoặc đã được chuyển sang một địa chỉ khác.
+        Có thể đường dẫn bị gõ sai một ký tự.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap body">
+    <p class="dan">Thử quay lại từ một trong những lối này:</p>
+
+    <nav class="loi-ra" aria-label="Liên kết thay thế">
+      <a class="chinh" href="/">Về trang chủ</a>
+
+      {chuyenMuc.map(([slug, info]) => (
+        <a href={`/${slug}`}>{info.ten}</a>
+      ))}
+
+      <a href="/podcast">Podcast</a>
+      <a href="/phong-su">Phóng sự</a>
+      <a href="/about_us">Về chúng tôi</a>
+    </nav>
+
+    <p class="lien-he">
+      Nếu bạn đến đây từ một liên kết trên chính trang này, rất mong bạn báo giúp
+      qua <a href="mailto:mekongtales@gmail.com">mekongtales@gmail.com</a> để nhóm sửa lại.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-head {
+    background: var(--river);
+    color: var(--paper);
+    padding: 56px 0;
+  }
+  .page-head h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 8px 0 10px;
+    letter-spacing: 0.02em;
+  }
+  .page-head p {
+    max-width: 640px;
+    color: #e6e0d2;
+    margin: 0;
+  }
+
+  .body {
+    padding-top: var(--space);
+    padding-bottom: var(--space);
+    max-width: var(--doc);
+  }
+
+  .dan {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+
+  .loi-ra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .loi-ra a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper-2);
+    color: var(--river);
+    font-weight: 500;
+  }
+  .loi-ra a:hover {
+    text-decoration: none;
+    border-color: var(--river);
+  }
+  .loi-ra a.chinh {
+    background: var(--river);
+    border-color: var(--river);
+    color: var(--paper);
+  }
+  .loi-ra a.chinh:hover {
+    background: var(--river-deep);
+  }
+
+  .lien-he {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+</style>

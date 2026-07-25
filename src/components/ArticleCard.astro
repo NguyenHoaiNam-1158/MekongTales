@@ -1,0 +1,60 @@
+---
+import { anhToiUu } from '../lib/img';
+
+const TEN_CHUYEN_MUC = {
+  'ki-uc': 'Kí ức',
+  'am-thuc': 'Ẩm thực',
+  'lang-nghe': 'Làng nghề',
+  'lich-su': 'Lịch sử',
+};
+
+interface Props {
+  bai: {
+    id: string;
+    data: {
+      title: string;
+      mo_ta: string;
+      anh_bia: string;
+      anh_bia_alt: string;
+      chuyen_muc: keyof typeof TEN_CHUYEN_MUC;
+      ngay_dang: Date;
+    };
+  };
+}
+const { bai } = Astro.props;
+const { title, mo_ta, anh_bia, anh_bia_alt, chuyen_muc, ngay_dang } = bai.data;
+const ngay = ngay_dang.toLocaleDateString('vi-VN');
+---
+<a href={`/bai-viet/${bai.id}`} class="card">
+  <div class="thumb">
+    {anh_bia ? <img src={anhToiUu(anh_bia, { w: 600 })} alt={anh_bia_alt} loading="lazy" /> : null}
+  </div>
+  <div class="body">
+    <span class="eyebrow">{TEN_CHUYEN_MUC[chuyen_muc]}</span>
+    <h3>{title}</h3>
+    <p class="excerpt">{mo_ta}</p>
+    <time>{ngay}</time>
+  </div>
+</a>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    color: inherit;
+  }
+  .card:hover { text-decoration: none; transform: translateY(-3px); }
+  .thumb {
+    aspect-ratio: 3 / 2;
+    background: var(--paper-2);
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .body { padding: 18px 20px 22px; }
+  .body h3 { font-size: 1.25rem; margin: 6px 0 8px; }
+  .excerpt { color: var(--ink-soft); font-size: 0.95rem; margin: 0 0 14px; }
+  time { color: var(--ink-soft); font-size: 0.82rem; }
+</style>
