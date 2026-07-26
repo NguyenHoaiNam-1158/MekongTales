@@ -4,8 +4,8 @@ import kho from '../../src/data/kho-tri-thuc.json';
 export interface WorkersAI {
   run(
     model: string,
-    input: { text: string[] }
-  ): Promise<{ data?: number[][]; response?: number[][] }>;
+    input: { text: string[] } | Record<string, unknown>
+  ): Promise<{ data?: number[][]; response?: string | number[][] } & Record<string, unknown>>;
 }
 
 export interface Doan {
@@ -42,9 +42,10 @@ function cosine(a: number[], b: number[]): number {
 
 export async function tinhVectorCauHoi(cauHoi: string, ai: WorkersAI): Promise<number[]> {
   const res = await ai.run(kho.model, { text: [cauHoi] });
-  const vector = res.data?.[0] ?? res.response?.[0];
+  const data = res.data ?? (Array.isArray(res.response) ? res.response : undefined);
+  const vector = data?.[0];
   if (!vector) throw new Error('Workers AI khong tra ve vector');
-  return vector;
+  return vector as number[];
 }
 
 export function timDoanLienQuan(vectorCauHoi: number[], soLuong = 4, nguong = 0.3): KetQua[] {

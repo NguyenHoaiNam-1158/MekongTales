@@ -5,17 +5,16 @@ import {
   gomNguon,
   thongTinKho,
   type WorkersAI,
-} from '../lib/rag';
-import { goiLLM, dungPrompt, type CauHinhLLM } from '../lib/llm';
+} from '../_lib/rag';
+import { goiLLM, dungPrompt, type CauHinhLLM } from '../_lib/llm';
 
 interface Env {
   AI: WorkersAI;
   LLM_NHA_CUNG_CAP?: string;
-  LLM_KHOA: string;
+  LLM_KHOA?: string;
   LLM_MODEL?: string;
 }
 
-// Cloudflare truyền vào một object lớn hơn, ta chỉ khai phần thực sự dùng.
 interface NguCanh {
   request: Request;
   env: Env;
@@ -44,12 +43,18 @@ export const onRequestPost = async ({ request, env }: NguCanh): Promise<Response
   if (!cauHoi) return json({ loi: 'Bạn chưa nhập câu hỏi.' }, 400);
   if (cauHoi.length > TOI_DA_KY_TU)
     return json({ loi: `Câu hỏi quá dài, tối đa ${TOI_DA_KY_TU} ký tự.` }, 400);
-  if (!env.LLM_KHOA) return json({ loi: 'Máy chủ chưa được cấu hình khoá API.' }, 500);
+
+  const nhaCungCap = env.LLM_NHA_CUNG_CAP ?? 'workers-ai';
+
+  // Chỉ nhà cung cấp ngoài mới cần khoá; Workers AI dùng binding.
+  if (nhaCungCap !== 'workers-ai' && !env.LLM_KHOA)
+    return json({ loi: 'Máy chủ chưa được cấu hình khoá API.' }, 500);
 
   const cauHinh: CauHinhLLM = {
-    nhaCungCap: env.LLM_NHA_CUNG_CAP ?? 'gemini',
-    khoa: env.LLM_KHOA,
-    model: env.LLM_MODEL ?? 'gemini-2.5-flash',
+    nhaCungCap,
+    khoa: env.LLM_KHOA ?? '',
+    model: env.LLM_MODEL ?? '@cf/meta/llama-3.1-8b-instruct',
+    ai: env.AI,
   };
 
   try {
