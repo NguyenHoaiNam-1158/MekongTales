@@ -4,7 +4,13 @@ const path = Astro.url.pathname;
 <header class="site-header">
   <div class="wrap bar">
     <a href="/" class="brand">
-      <span class="logo">MT</span>
+      <img
+        class="logo"
+        src="https://res.cloudinary.com/doljk7ymy/image/upload/v1785073505/ChatGPT_Image_18_24_37_11_thg_7_2026_c1om6c.png"
+        alt="Logo Mekong Tales"
+        width="40"
+        height="40"
+      />
       <span>Mekong Tales</span>
     </a>
 
@@ -112,15 +118,13 @@ const path = Astro.url.pathname;
   }
   .brand:hover { text-decoration: none; }
   .logo {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    object-fit: cover;
+    /* Nền vàng chỉ hiện nếu logo trong suốt; logo có nền riêng thì bị che, vô hại */
     background: var(--marigold);
-    color: var(--river-deep);
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
+    flex-shrink: 0;
   }
 
   /* ─── NÚT HAMBURGER (chỉ hiện trên màn hình hẹp) ─── */
