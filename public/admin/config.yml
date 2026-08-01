@@ -88,16 +88,17 @@ collections:
             value_type: "int"
             default: 1
             min: 0
-            hint: "0 = đặt ngay đầu bài, trước đoạn 1."
+            hint: "0 = đặt ngay đầu bài, trước đoạn 1. Tiêu đề phụ và danh sách cũng được tính là một đoạn. Không chắc thì chạy `npm run dem-doan` để xem số thứ tự từng đoạn."
           - name: "kieu"
             label: "Kiểu bố cục"
             widget: "select"
             options:
-              - { label: "Ảnh luồng (rộng hết bài)", value: "luong" }
-              - { label: "Lưới 2 ảnh", value: "luoi-2" }
-              - { label: "Lưới 3 ảnh", value: "luoi-3" }
-              - { label: "Ảnh bên trái, chữ bên phải", value: "ben-trai" }
-              - { label: "Ảnh bên phải, chữ bên trái", value: "ben-phai" }
+              - { label: "Ảnh luồng — 1 ảnh rộng hết bài", value: "luong" }
+              - { label: "Lưới 2 ảnh — cần đúng 2 ảnh", value: "luoi-2" }
+              - { label: "Lưới 3 ảnh — cần đúng 3 ảnh", value: "luoi-3" }
+              - { label: "Lưới lệch — 1 ảnh lớn bên trái, các ảnh nhỏ xếp dọc bên phải (cần 3 ảnh trở lên)", value: "luoi-lech" }
+              - { label: "Ảnh bên trái, chữ bên phải — chỉ lấy ảnh đầu tiên", value: "ben-trai" }
+              - { label: "Ảnh bên phải, chữ bên trái — chỉ lấy ảnh đầu tiên", value: "ben-phai" }
           - { name: "chu_thich", label: "Chú thích ảnh", widget: "string", required: false }
           - name: "chu"
             label: "Đoạn chữ đi kèm"

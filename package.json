@@ -14,7 +14,8 @@
     "dev:api": "astro build && wrangler pages dev",
     "db:tao": "wrangler d1 execute mekong-tales --local --file=db/schema.sql",
     "db:tao-that": "wrangler d1 execute mekong-tales --remote --file=db/schema.sql",
-    "kiem-tra": "node scripts/kiem-tra-trang.mjs"
+    "kiem-tra": "node scripts/kiem-tra-trang.mjs",
+    "dem-doan": "node scripts/dem-doan.mjs"
   },
   "dependencies": {
     "astro": "^7.1.1",

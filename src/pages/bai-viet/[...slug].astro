@@ -36,6 +36,23 @@ for (const k of khoi_anh) {
   khoiTheoDoan.set(k.sau_doan, arr);
 }
 const khoiDauBai = khoiTheoDoan.get(0) ?? [];
+
+// Khối ảnh trỏ quá số đoạn sẽ không được vòng lặp bên dưới chèn vào đâu cả —
+// nó biến mất khỏi trang mà không báo gì. Kêu lên lúc build cho biết đường sửa.
+for (const k of khoi_anh) {
+  if (k.sau_doan > doan.length) {
+    console.warn(
+      `[bai-viet] "${bai.id}": khối ảnh đặt ở đoạn ${k.sau_doan} nhưng bài chỉ có ` +
+        `${doan.length} đoạn — khối này sẽ không hiện. Chạy \`npm run dem-doan -- ${bai.id}\` để xem số đoạn.`
+    );
+  }
+  if (k.chu && k.kieu !== 'ben-trai' && k.kieu !== 'ben-phai') {
+    console.warn(
+      `[bai-viet] "${bai.id}": khối ảnh kiểu "${k.kieu}" có đoạn chữ đi kèm nhưng ` +
+        `chỉ kiểu ben-trai/ben-phai mới hiển thị được đoạn chữ đó.`
+    );
+  }
+}
 ---
 <BaseLayout title={title} mo_ta={mo_ta}>
   <article class="article">
