@@ -1,10 +1,11 @@
 backend:
   name: github
-  repo: NguyenHoaiNam-1158/mekong-tales
+  # Phải khớp đúng tên repo trên GitHub (xem `git remote -v`).
+  repo: NguyenHoaiNam-1158/MekongTales
   # Phải khớp nhánh mà Cloudflare Pages build.
-  branch: main
+  branch: master
 
-site_url: https://mekong-tales.pages.dev
+site_url: https://mekongtales.pages.dev
 
 # Bài đăng thành Pull Request để duyệt. Nếu /admin lỗi khi mở, comment dòng này lại.
 publish_mode: editorial_workflow
@@ -55,10 +56,21 @@ collections:
         widget: "object"
         required: false
         collapsed: true
-        hint: "Điền để bài hiện lên bản đồ làng nghề dọc sông Tiền."
+        hint: "Điền để bài hiện lên trang Bản đồ."
         fields:
           - { name: "ten", label: "Tên địa điểm", widget: "string", required: false }
-          - { name: "tinh", label: "Tỉnh/Thành", widget: "string", required: false }
+          - name: "tinh_slug"
+            label: "Tỉnh/Thành (sau sáp nhập 2025)"
+            widget: "select"
+            required: false
+            hint: "Chọn tỉnh để bài hiện trong bảng thông tin khi bấm vào tỉnh đó trên bản đồ."
+            options:
+              - { label: "Đồng Tháp (gồm Đồng Tháp, Tiền Giang)", value: "dong-thap" }
+              - { label: "Vĩnh Long (gồm Vĩnh Long, Trà Vinh, Bến Tre)", value: "vinh-long" }
+              - { label: "Cần Thơ (gồm Cần Thơ, Sóc Trăng, Hậu Giang)", value: "can-tho" }
+              - { label: "An Giang (gồm An Giang, Kiên Giang)", value: "an-giang" }
+              - { label: "Cà Mau (gồm Cà Mau, Bạc Liêu)", value: "ca-mau" }
+          - { name: "tinh", label: "Tên tỉnh ghi trong bài", widget: "string", required: false, hint: "Tuỳ chọn. Dùng khi muốn ghi tên tỉnh cũ, ví dụ Tiền Giang." }
           - { name: "lat", label: "Vĩ độ", widget: "number", value_type: "float", required: false }
           - { name: "lng", label: "Kinh độ", widget: "number", value_type: "float", required: false }
       - name: "khoi_anh"

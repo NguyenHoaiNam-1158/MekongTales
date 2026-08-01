@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Trang nội bộ của ban biên tập, không có nội dung cho bạn đọc.
+Disallow: /quan-tri
+Disallow: /admin
