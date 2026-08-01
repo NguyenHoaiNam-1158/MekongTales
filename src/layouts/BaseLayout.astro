@@ -40,5 +40,18 @@ const { title, mo_ta = 'Chuyện kể từ dòng sông di sản', noindex = fals
     </main>
     <Footer />
     <ChatBot />
+
+    {/* Đếm lượt xem. Trang tĩnh do CDN phục vụ thẳng, không chạy qua Functions,
+        nên máy chủ chỉ biết có người vào khi trình duyệt báo về. */}
+    {!noindex && (
+      <script is:inline>
+        fetch('/api/su-kien', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ loai: 'xem' }),
+          keepalive: true,
+        }).catch(() => {});
+      </script>
+    )}
   </body>
 </html>

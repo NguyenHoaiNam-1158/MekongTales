@@ -1,0 +1,132 @@
+---
+// Nút chia sẻ bài viết. Mỗi lần bấm được ghi lại để hiện trong trang quản trị.
+//
+// LƯU Ý về ý nghĩa con số: đây là số lần BẤM NÚT, không phải số lượt chia sẻ
+// thật. Người đọc copy link dán vào Zalo hay tin nhắn thì không có tín hiệu nào
+// quay về, và Facebook đã đóng API đếm share công khai từ lâu.
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<div class="cs" data-chia-se data-tieu-de={title}>
+  <span class="cs-nhan">Chia sẻ bài viết</span>
+
+  <div class="cs-nut">
+    <button type="button" data-kenh="facebook" title="Chia sẻ lên Facebook">
+      <span aria-hidden="true">f</span> Facebook
+    </button>
+    <button type="button" data-kenh="x" title="Chia sẻ lên X">
+      <span aria-hidden="true">𝕏</span> X
+    </button>
+    <button type="button" data-kenh="sao-chep" data-sao-chep>
+      <span aria-hidden="true">🔗</span> <span data-chu-sao-chep>Chép liên kết</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const goc = document.querySelector<HTMLElement>('[data-chia-se]');
+
+  if (goc) {
+    const tieuDe = goc.dataset.tieuDe ?? document.title;
+
+    /** Báo về máy chủ. Không chặn thao tác của người dùng nếu lỗi. */
+    const ghiNhan = (kenh: string) =>
+      fetch('/api/su-kien', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loai: 'chia_se', kenh }),
+        keepalive: true,
+      }).catch(() => {});
+
+    const moCuaSo = (dia: string) =>
+      window.open(dia, '_blank', 'noopener,noreferrer,width=640,height=560');
+
+    /**
+     * Chép vào bộ nhớ tạm. navigator.clipboard cần ngữ cảnh an toàn (HTTPS) và
+     * trình duyệt đời mới, nên vẫn giữ đường lùi bằng execCommand cho máy cũ.
+     */
+    async function chep(chuoi: string): Promise<boolean> {
+      try {
+        await navigator.clipboard.writeText(chuoi);
+        return true;
+      } catch {
+        /* thử cách cũ bên dưới */
+      }
+
+      const o = document.createElement('textarea');
+      o.value = chuoi;
+      o.setAttribute('readonly', '');
+      o.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+      document.body.append(o);
+      o.select();
+      let xong = false;
+      try {
+        xong = document.execCommand('copy');
+      } catch {
+        xong = false;
+      }
+      o.remove();
+      return xong;
+    }
+
+    goc.addEventListener('click', async (e) => {
+      const nut = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-kenh]');
+      if (!nut) return;
+
+      const kenh = nut.dataset.kenh!;
+      const dia = window.location.href;
+      ghiNhan(kenh);
+
+      if (kenh === 'facebook') {
+        moCuaSo(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(dia)}`);
+      } else if (kenh === 'x') {
+        moCuaSo(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(dia)}&text=${encodeURIComponent(tieuDe)}`
+        );
+      } else if (kenh === 'sao-chep') {
+        const chu = goc.querySelector<HTMLElement>('[data-chu-sao-chep]')!;
+        chu.textContent = (await chep(dia)) ? 'Đã chép!' : 'Không chép được';
+        setTimeout(() => (chu.textContent = 'Chép liên kết'), 2000);
+      }
+    });
+  }
+</script>
+
+<style>
+  .cs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    max-width: 900px;
+    margin: 40px auto 0;
+    padding: 16px clamp(16px, 4vw, 48px);
+  }
+  .cs-nhan {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--marigold);
+  }
+  .cs-nut { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cs-nut button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .cs-nut button:hover { border-color: var(--river); background: var(--paper); }
+  .cs-nut button span[aria-hidden] { font-weight: 700; opacity: 0.75; }
+</style>

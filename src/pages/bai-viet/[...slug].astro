@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import KhoiAnh from '../../components/KhoiAnh.astro';
 import PhanHoi from '../../components/PhanHoi.astro';
+import ChiaSe from '../../components/ChiaSe.astro';
 import { anhToiUu } from '../../lib/img';
 import { tachDoan } from '../../lib/thanBai';
 
@@ -61,6 +62,7 @@ const khoiDauBai = khoiTheoDoan.get(0) ?? [];
     </div>
   </article>
 
+  <ChiaSe title={title} />
   <PhanHoi slug={bai.id} />
 </BaseLayout>
 

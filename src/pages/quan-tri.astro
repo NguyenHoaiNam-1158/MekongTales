@@ -22,6 +22,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </form>
 
     <div class="qt-bang-dieu-khien" data-bang hidden>
+      <section class="qt-tk" data-tk>
+        <h2>Lượt truy cập</h2>
+
+        <div class="qt-o-so" data-o-so>
+          <p class="qt-trang-thai">Đang tải số liệu…</p>
+        </div>
+
+        <div class="qt-cot" data-bieu-do></div>
+
+        <div class="qt-hai-cot">
+          <div>
+            <h3>Trang được xem nhiều nhất</h3>
+            <table class="qt-bang-so" data-top-trang></table>
+          </div>
+          <div>
+            <h3>Lượt bấm nút chia sẻ</h3>
+            <table class="qt-bang-so" data-chia-se></table>
+            <p class="qt-ghi-chu">
+              Đây là số lần bấm nút chia sẻ trên trang, không phải số lượt chia sẻ thật —
+              người đọc chép liên kết rồi dán vào Zalo hay tin nhắn thì không đo được.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <h2 class="qt-muc">Ý kiến bạn đọc</h2>
       <nav class="qt-tab" data-tab>
         <button type="button" data-trang-thai="cho_duyet" class="dang-xem">Chờ duyệt <span data-dem-cho_duyet>0</span></button>
         <button type="button" data-trang-thai="hien">Đang hiện <span data-dem-hien>0</span></button>
@@ -210,6 +236,102 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   }
 
+  // ------------------------------------------------------------ thống kê
+  const oSo = document.querySelector<HTMLElement>('[data-o-so]')!;
+  const bieuDo = document.querySelector<HTMLElement>('[data-bieu-do]')!;
+
+  const soDep = (n: number) => (n ?? 0).toLocaleString('vi-VN');
+
+  function veO(nhan: string, khach: number, luot: number) {
+    const o = document.createElement('div');
+    o.className = 'qt-o';
+    const n = document.createElement('span');
+    n.className = 'qt-o-nhan';
+    n.textContent = nhan;
+    const k = document.createElement('strong');
+    k.textContent = soDep(khach);
+    const l = document.createElement('span');
+    l.className = 'qt-o-phu';
+    l.textContent = `${soDep(luot)} lượt xem`;
+    o.append(n, k, l);
+    return o;
+  }
+
+  function veBang(el: HTMLTableElement, cot: string[], hang: (string | number)[][]) {
+    el.replaceChildren();
+    if (!hang.length) {
+      const p = document.createElement('caption');
+      p.className = 'qt-rong';
+      p.textContent = 'Chưa có số liệu.';
+      el.append(p);
+      return;
+    }
+    const thead = el.createTHead().insertRow();
+    for (const c of cot) {
+      const th = document.createElement('th');
+      th.textContent = c;
+      thead.append(th);
+    }
+    const tb = el.createTBody();
+    for (const h of hang) {
+      const tr = tb.insertRow();
+      h.forEach((o, i) => {
+        const td = tr.insertCell();
+        td.textContent = String(o);
+        if (i > 0) td.className = 'qt-so';
+      });
+    }
+  }
+
+  async function napThongKe() {
+    try {
+      const res = await goi('/api/quan-tri/thong-ke');
+      if (!res.ok) return;
+      const d = await res.json();
+      if (d.loi) return;
+
+      oSo.replaceChildren(
+        veO('Hôm nay', d.truy_cap.hom_nay.khach, d.truy_cap.hom_nay.luot),
+        veO('7 ngày qua', d.truy_cap.bay_ngay.khach, d.truy_cap.bay_ngay.luot),
+        veO('30 ngày qua', d.truy_cap.ba_muoi_ngay.khach, d.truy_cap.ba_muoi_ngay.luot),
+        veO('Từ trước tới nay', d.truy_cap.tat_ca.khach, d.truy_cap.tat_ca.luot)
+      );
+
+      // Biểu đồ cột 14 ngày, dựng bằng div nên không cần thư viện nào.
+      bieuDo.replaceChildren();
+      const ngay: { ngay: string; khach: number; luot: number }[] = d.theo_ngay ?? [];
+      const dinh = Math.max(1, ...ngay.map((n) => n.khach));
+      for (const n of ngay) {
+        const cot = document.createElement('div');
+        cot.className = 'qt-cot-mot';
+        cot.title = `${n.ngay}: ${n.khach} khách, ${n.luot} lượt xem`;
+        const thanh = document.createElement('div');
+        thanh.className = 'qt-thanh';
+        thanh.style.height = `${Math.round((n.khach / dinh) * 100)}%`;
+        const nhan = document.createElement('span');
+        nhan.textContent = n.ngay.slice(8); // chỉ lấy ngày
+        cot.append(thanh, nhan);
+        bieuDo.append(cot);
+      }
+      if (!ngay.length) bieuDo.textContent = 'Chưa có lượt truy cập nào trong 14 ngày qua.';
+
+      veBang(
+        document.querySelector('[data-top-trang]')!,
+        ['Trang', 'Khách', 'Lượt xem'],
+        (d.top_trang ?? []).map((t: any) => [t.duong_dan, soDep(t.khach), soDep(t.luot)])
+      );
+
+      const kenh: Record<string, string> = { facebook: 'Facebook', x: 'X', 'sao-chep': 'Chép liên kết' };
+      const hangChiaSe = [
+        ...(d.chia_se.theo_kenh ?? []).map((k: any) => [kenh[k.kenh] ?? k.kenh, soDep(k.so_lan)]),
+        ...(d.chia_se.theo_trang ?? []).map((t: any) => [t.duong_dan, soDep(t.so_lan)]),
+      ];
+      veBang(document.querySelector('[data-chia-se]')!, ['Kênh / Trang', 'Lần bấm'], hangChiaSe);
+    } catch {
+      oSo.textContent = 'Không tải được số liệu truy cập.';
+    }
+  }
+
   formKhoa.addEventListener('submit', (e) => {
     e.preventDefault();
     loiKhoa.hidden = true;
@@ -219,12 +341,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     oKhoa.value = '';
     moKhoa(true);
     nap();
+    napThongKe();
   });
 
   tab.addEventListener('click', (e) => {
     const nut = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
     if (!nut) return;
-    if (nut.hasAttribute('data-tai-lai')) return nap();
+    if (nut.hasAttribute('data-tai-lai')) {
+      napThongKe();
+      return nap();
+    }
     const tt = nut.dataset.trangThai;
     if (!tt) return;
     dangXem = tt;
@@ -235,6 +361,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   if (khoa) {
     moKhoa(true);
     nap();
+    napThongKe();
   }
 </script>
 
@@ -259,7 +386,46 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   .qt-loi { flex: 1 0 100%; margin: 0; color: #8c3a28; font-size: 0.88rem; }
 
-  .qt-tab { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 16px; }
+  .qt-tk { margin: 28px 0 8px; }
+  .qt-tk h2 { font-size: 1.3rem; margin: 0 0 14px; }
+  .qt-tk h3 {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--marigold); margin: 0 0 8px;
+  }
+  .qt-muc { font-size: 1.3rem; margin: 36px 0 0; padding-top: 24px; border-top: 1px solid var(--line); }
+
+  .qt-o-so { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 700px) { .qt-o-so { grid-template-columns: repeat(2, 1fr); } }
+  .qt-o {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 14px 16px;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .qt-o-nhan { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+  .qt-o strong { font-size: 1.7rem; font-family: var(--font-display); line-height: 1.1; }
+  .qt-o-phu { font-size: 0.76rem; color: var(--ink-soft); }
+
+  .qt-cot {
+    display: flex; align-items: flex-end; gap: 4px;
+    height: 130px; margin: 20px 0 6px; padding: 10px 12px 0;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 10px;
+    font-size: 0.68rem; color: var(--ink-soft);
+  }
+  .qt-cot-mot { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 4px; }
+  .qt-thanh { width: 100%; min-height: 2px; background: var(--river); border-radius: 3px 3px 0 0; }
+
+  .qt-hai-cot { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px; }
+  @media (max-width: 760px) { .qt-hai-cot { grid-template-columns: 1fr; } }
+
+  .qt-bang-so { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .qt-bang-so :is(th, td) { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .qt-bang-so th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); font-weight: 600; }
+  .qt-bang-so td:first-child { word-break: break-all; }
+  .qt-bang-so .qt-so { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .qt-bang-so .qt-rong { caption-side: bottom; text-align: left; padding: 6px 8px; color: var(--ink-soft); font-style: italic; }
+  .qt-ghi-chu { margin: 10px 0 0; font-size: 0.76rem; color: var(--ink-soft); line-height: 1.55; }
+
+  .qt-tab { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 16px; }
   .qt-tab button {
     padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
     background: var(--paper); color: var(--ink-soft); font: inherit; font-size: 0.86rem; cursor: pointer;
