@@ -1,0 +1,291 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Trang duyệt ý kiến bạn đọc.
+//
+// XÁC THỰC TẠM THỜI: nhập khoá bí mật, giữ trong sessionStorage (mất khi đóng
+// tab). Bước 5 của kế hoạch sẽ thay bằng Cloudflare Access — khi đó xoá hẳn ô
+// nhập khoá ở đây và bỏ header Authorization trong các lời gọi bên dưới.
+---
+
+<BaseLayout title="Duyệt ý kiến" mo_ta="Trang nội bộ của ban biên tập Mekong Tales." noindex>
+  <div class="wrap qt">
+    <h1>Duyệt ý kiến bạn đọc</h1>
+
+    <form class="qt-khoa" data-form-khoa>
+      <label>
+        Khoá quản trị
+        <input type="password" data-o-khoa autocomplete="current-password" required />
+      </label>
+      <button type="submit">Mở</button>
+      <p class="qt-loi" data-loi-khoa role="alert" hidden></p>
+    </form>
+
+    <div class="qt-bang-dieu-khien" data-bang hidden>
+      <nav class="qt-tab" data-tab>
+        <button type="button" data-trang-thai="cho_duyet" class="dang-xem">Chờ duyệt <span data-dem-cho_duyet>0</span></button>
+        <button type="button" data-trang-thai="hien">Đang hiện <span data-dem-hien>0</span></button>
+        <button type="button" data-trang-thai="an">Đã ẩn <span data-dem-an>0</span></button>
+        <button type="button" data-trang-thai="spam">Thư rác <span data-dem-spam>0</span></button>
+        <button type="button" class="qt-tai-lai" data-tai-lai>Tải lại</button>
+      </nav>
+
+      <p class="qt-trang-thai" data-trang-thai-chu>Đang tải…</p>
+      <ul class="qt-ds" data-ds></ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const KHOA_LUU = 'mekong-quan-tri-khoa';
+
+  const formKhoa = document.querySelector<HTMLFormElement>('[data-form-khoa]')!;
+  const oKhoa = document.querySelector<HTMLInputElement>('[data-o-khoa]')!;
+  const loiKhoa = document.querySelector<HTMLElement>('[data-loi-khoa]')!;
+  const bang = document.querySelector<HTMLElement>('[data-bang]')!;
+  const dsEl = document.querySelector<HTMLUListElement>('[data-ds]')!;
+  const trangThaiChu = document.querySelector<HTMLElement>('[data-trang-thai-chu]')!;
+  const tab = document.querySelector<HTMLElement>('[data-tab]')!;
+
+  let khoa = sessionStorage.getItem(KHOA_LUU) ?? '';
+  let dangXem = 'cho_duyet';
+
+  interface Hang {
+    id: number;
+    bai_slug: string;
+    ten: string;
+    email: string | null;
+    noi_dung: string;
+    so_sao: number | null;
+    tra_loi_cho: number | null;
+    trang_thai: string;
+    tao_luc: string;
+  }
+
+  const goi = (duong: string, tuyChon: RequestInit = {}) =>
+    fetch(duong, {
+      ...tuyChon,
+      headers: { ...tuyChon.headers, Authorization: `Bearer ${khoa}` },
+    });
+
+  const doiNgay = (s: string) => {
+    const d = new Date(s.replace(' ', 'T') + 'Z');
+    return Number.isNaN(d.getTime()) ? s : d.toLocaleString('vi-VN');
+  };
+
+  const NHAN: Record<string, string> = {
+    cho_duyet: 'Chờ duyệt',
+    hien: 'Đang hiện',
+    an: 'Đã ẩn',
+    spam: 'Thư rác',
+  };
+
+  function veMot(h: Hang): HTMLLIElement {
+    const li = document.createElement('li');
+    li.className = 'qt-mot';
+
+    const dau = document.createElement('div');
+    dau.className = 'qt-mot-dau';
+
+    const ten = document.createElement('strong');
+    ten.textContent = h.ten;
+    dau.append(ten);
+
+    if (h.so_sao) {
+      const sao = document.createElement('span');
+      sao.className = 'qt-sao';
+      sao.textContent = '★'.repeat(h.so_sao);
+      dau.append(sao);
+    }
+
+    if (h.email) {
+      const em = document.createElement('span');
+      em.className = 'qt-email';
+      em.textContent = h.email;
+      dau.append(em);
+    }
+
+    const ngay = document.createElement('span');
+    ngay.className = 'qt-ngay';
+    ngay.textContent = doiNgay(h.tao_luc);
+    dau.append(ngay);
+
+    const bai = document.createElement('a');
+    bai.className = 'qt-bai';
+    bai.href = `/bai-viet/${h.bai_slug}`;
+    bai.target = '_blank';
+    bai.rel = 'noopener';
+    bai.textContent = h.bai_slug;
+    if (h.tra_loi_cho !== null) bai.textContent += ` · trả lời #${h.tra_loi_cho}`;
+
+    const chu = document.createElement('p');
+    chu.className = 'qt-chu';
+    chu.textContent = h.noi_dung;
+
+    const nut = document.createElement('div');
+    nut.className = 'qt-nut';
+    for (const [tt, nhan] of [
+      ['hien', 'Duyệt'],
+      ['an', 'Ẩn'],
+      ['spam', 'Thư rác'],
+      ['cho_duyet', 'Trả về hàng chờ'],
+    ] as const) {
+      if (tt === h.trang_thai) continue;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = nhan;
+      b.className = tt === 'hien' ? 'qt-duyet' : tt === 'spam' ? 'qt-spam' : '';
+      b.addEventListener('click', () => doiTrangThai(h.id, tt, b));
+      nut.append(b);
+    }
+
+    li.append(dau, bai, chu, nut);
+    return li;
+  }
+
+  async function doiTrangThai(id: number, trangThai: string, nut: HTMLButtonElement) {
+    const anhEm = nut.parentElement!.querySelectorAll('button');
+    anhEm.forEach((b) => (b.disabled = true));
+    try {
+      const res = await goi('/api/quan-tri/phan-hoi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, trang_thai: trangThai }),
+      });
+      const data = await res.json();
+      if (data.loi) {
+        alert(data.loi);
+        anhEm.forEach((b) => (b.disabled = false));
+        return;
+      }
+      await nap();
+    } catch {
+      alert('Không đổi được trạng thái.');
+      anhEm.forEach((b) => (b.disabled = false));
+    }
+  }
+
+  async function nap() {
+    trangThaiChu.hidden = false;
+    trangThaiChu.textContent = 'Đang tải…';
+    dsEl.replaceChildren();
+
+    try {
+      const res = await goi(`/api/quan-tri/phan-hoi?trang_thai=${dangXem}`);
+      if (res.status === 401) {
+        moKhoa(false);
+        loiKhoa.textContent = 'Khoá không đúng.';
+        loiKhoa.hidden = false;
+        return;
+      }
+      const data = await res.json();
+      if (data.loi) {
+        trangThaiChu.textContent = data.loi;
+        return;
+      }
+
+      for (const tt of Object.keys(NHAN)) {
+        const el = document.querySelector(`[data-dem-${tt}]`);
+        if (el) el.textContent = String(data.thong_ke?.[tt] ?? 0);
+      }
+
+      const ds: Hang[] = data.danh_sach ?? [];
+      if (!ds.length) {
+        trangThaiChu.textContent = `Không có ý kiến nào ở mục "${NHAN[dangXem]}".`;
+        return;
+      }
+      trangThaiChu.hidden = true;
+      for (const h of ds) dsEl.append(veMot(h));
+    } catch {
+      trangThaiChu.textContent = 'Không tải được danh sách.';
+    }
+  }
+
+  function moKhoa(mo: boolean) {
+    bang.hidden = !mo;
+    formKhoa.hidden = mo;
+    if (!mo) {
+      sessionStorage.removeItem(KHOA_LUU);
+      khoa = '';
+    }
+  }
+
+  formKhoa.addEventListener('submit', (e) => {
+    e.preventDefault();
+    loiKhoa.hidden = true;
+    khoa = oKhoa.value.trim();
+    if (!khoa) return;
+    sessionStorage.setItem(KHOA_LUU, khoa);
+    oKhoa.value = '';
+    moKhoa(true);
+    nap();
+  });
+
+  tab.addEventListener('click', (e) => {
+    const nut = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
+    if (!nut) return;
+    if (nut.hasAttribute('data-tai-lai')) return nap();
+    const tt = nut.dataset.trangThai;
+    if (!tt) return;
+    dangXem = tt;
+    tab.querySelectorAll('button').forEach((b) => b.classList.toggle('dang-xem', b === nut));
+    nap();
+  });
+
+  if (khoa) {
+    moKhoa(true);
+    nap();
+  }
+</script>
+
+<style>
+  .qt { max-width: 900px; padding-top: 40px; padding-bottom: var(--space); }
+  .qt h1 { font-size: 1.8rem; }
+
+  .qt-khoa {
+    display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px;
+    padding: 20px; margin-top: 20px;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .qt-khoa label { font-size: 0.85rem; color: var(--ink-soft); }
+  .qt-khoa input {
+    display: block; margin-top: 5px; padding: 9px 11px; width: 280px; max-width: 100%;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+    color: var(--ink); font: inherit;
+  }
+  .qt-khoa button {
+    padding: 10px 20px; border: 0; border-radius: 999px;
+    background: var(--river); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .qt-loi { flex: 1 0 100%; margin: 0; color: #8c3a28; font-size: 0.88rem; }
+
+  .qt-tab { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 16px; }
+  .qt-tab button {
+    padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--paper); color: var(--ink-soft); font: inherit; font-size: 0.86rem; cursor: pointer;
+  }
+  .qt-tab button.dang-xem { background: var(--river); color: var(--paper); border-color: var(--river); }
+  .qt-tab button span { opacity: 0.75; margin-left: 4px; }
+  .qt-tai-lai { margin-left: auto; }
+
+  .qt-trang-thai { color: var(--ink-soft); font-style: italic; }
+
+  .qt-ds { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .qt-mot {
+    padding: 14px 16px;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .qt-mot-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .qt-sao { color: var(--marigold); }
+  .qt-email, .qt-ngay { font-size: 0.78rem; color: var(--ink-soft); }
+  .qt-bai { display: inline-block; margin-top: 4px; font-size: 0.78rem; }
+  .qt-chu { margin: 8px 0 12px; white-space: pre-wrap; }
+  .qt-nut { display: flex; flex-wrap: wrap; gap: 8px; }
+  .qt-nut button {
+    padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--paper); color: var(--ink); font: inherit; font-size: 0.82rem; cursor: pointer;
+  }
+  .qt-nut button:disabled { opacity: 0.5; cursor: default; }
+  .qt-nut .qt-duyet { background: var(--river); color: var(--paper); border-color: var(--river); }
+  .qt-nut .qt-spam { color: #8c3a28; }
+</style>

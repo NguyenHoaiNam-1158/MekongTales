@@ -1,0 +1,465 @@
+---
+// Khung bình luận + đánh giá sao dưới mỗi bài viết.
+// Trang là tĩnh nên toàn bộ dữ liệu nạp từ /api/phan-hoi lúc người đọc mở bài.
+
+import { khoaTurnstile } from '../lib/turnstile';
+
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+---
+
+<section class="ph" data-ph data-slug={slug} aria-labelledby="ph-tieu-de">
+  <div class="ph-dau">
+    <h2 id="ph-tieu-de">Ý kiến bạn đọc</h2>
+
+    <div class="ph-tom-tat" data-tom-tat hidden>
+      <span class="ph-sao-tb" data-sao-tb aria-hidden="true"></span>
+      <span data-diem-chu></span>
+    </div>
+
+    <button type="button" class="ph-thich" data-thich aria-pressed="false" disabled>
+      <span aria-hidden="true">♥</span>
+      <span data-thich-so>–</span>
+      <span class="ph-thich-chu">Thích bài này</span>
+    </button>
+  </div>
+
+  <p class="ph-trang-thai" data-trang-thai>Đang tải ý kiến…</p>
+
+  <ol class="ph-ds" data-ds></ol>
+
+  <form class="ph-form" data-form novalidate>
+    <h3 data-form-tieu-de>Để lại ý kiến</h3>
+
+    <p class="ph-tra-loi" data-dang-tra-loi hidden>
+      Đang trả lời <strong data-tra-loi-ten></strong>
+      <button type="button" data-huy-tra-loi>Huỷ</button>
+    </p>
+
+    <fieldset class="ph-sao">
+      <legend>Đánh giá bài viết <span>(không bắt buộc)</span></legend>
+      <div class="ph-sao-boc">
+        {/* Đảo thứ tự 5→1 trong HTML rồi lật lại bằng row-reverse: nhờ vậy
+            `input:checked ~ label` tô đúng các sao từ sao được chọn trở xuống. */}
+        <div class="ph-sao-chon">
+          {[5, 4, 3, 2, 1].map((n) => (
+            <>
+              <input type="radio" name="so_sao" id={`sao-${n}`} value={n} />
+              <label for={`sao-${n}`} title={`${n} sao`}>
+                <span class="ph-an">{n} sao</span>
+                <span aria-hidden="true">★</span>
+              </label>
+            </>
+          ))}
+        </div>
+        <button type="button" class="ph-xoa-sao" data-xoa-sao hidden>Bỏ chọn</button>
+      </div>
+    </fieldset>
+
+    <div class="ph-hang">
+      <label>
+        Tên của bạn <span class="ph-bat-buoc" aria-hidden="true">*</span>
+        <input type="text" name="ten" required minlength="2" maxlength="60" autocomplete="name" />
+      </label>
+      <label>
+        Email <span class="ph-phu">(không bắt buộc, không hiển thị công khai)</span>
+        <input type="email" name="email" maxlength="120" autocomplete="email" />
+      </label>
+    </div>
+
+    <label class="ph-o-chu">
+      Ý kiến của bạn <span class="ph-bat-buoc" aria-hidden="true">*</span>
+      <textarea name="noi_dung" required minlength="2" maxlength="2000" rows="5"></textarea>
+      <span class="ph-dem"><span data-dem>0</span>/2000</span>
+    </label>
+
+    <label class="ph-dong-y">
+      <input type="checkbox" name="dong_y" required />
+      <span>
+        Tôi đồng ý cho Mekong Tales lưu tên, ý kiến và email (nếu có) của tôi theo
+        <a href="/quyen-rieng-tu">Chính sách quyền riêng tư</a>.
+      </span>
+    </label>
+
+    <div class="cf-turnstile" data-sitekey={khoaTurnstile} data-language="vi"></div>
+
+    <p class="ph-loi" data-loi role="alert" hidden></p>
+    <p class="ph-xong" data-xong role="status" hidden></p>
+
+    <button type="submit" data-gui>Gửi ý kiến</button>
+    <p class="ph-luu-y">Ý kiến sẽ hiện sau khi ban biên tập duyệt.</p>
+  </form>
+</section>
+
+<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
+<script>
+  const goc = document.querySelector<HTMLElement>('[data-ph]');
+
+  if (goc) {
+    const slug = goc.dataset.slug ?? '';
+    const $ = <T extends HTMLElement>(s: string) => goc.querySelector<T>(s)!;
+
+    const dsEl = $<HTMLOListElement>('[data-ds]');
+    const trangThaiEl = $('[data-trang-thai]');
+    const tomTatEl = $('[data-tom-tat]');
+    const saoTbEl = $('[data-sao-tb]');
+    const diemChuEl = $('[data-diem-chu]');
+    const nutThich = $<HTMLButtonElement>('[data-thich]');
+    const thichSoEl = $('[data-thich-so]');
+    const form = $<HTMLFormElement>('[data-form]');
+    const nutGui = $<HTMLButtonElement>('[data-gui]');
+    const loiEl = $('[data-loi]');
+    const xongEl = $('[data-xong]');
+    const demEl = $('[data-dem]');
+    const oChu = form.querySelector<HTMLTextAreaElement>('[name="noi_dung"]')!;
+    const dangTraLoiEl = $('[data-dang-tra-loi]');
+    const traLoiTenEl = $('[data-tra-loi-ten]');
+    const nutXoaSao = $<HTMLButtonElement>('[data-xoa-sao]');
+
+    interface PhanHoiHang {
+      id: number;
+      ten: string;
+      noi_dung: string;
+      so_sao: number | null;
+      tra_loi_cho: number | null;
+      tao_luc: string;
+    }
+
+    let traLoiCho: number | null = null;
+
+    const veSao = (n: number) => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+
+    // SQLite trả về giờ UTC dạng 'YYYY-MM-DD HH:MM:SS', không có ký hiệu múi giờ.
+    const doiNgay = (s: string) => {
+      const d = new Date(s.replace(' ', 'T') + 'Z');
+      return Number.isNaN(d.getTime())
+        ? s
+        : d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    /** Dựng một bình luận bằng DOM API — nội dung người dùng không bao giờ đi qua innerHTML. */
+    function veMot(ph: PhanHoiHang, laTraLoi: boolean): HTMLLIElement {
+      const li = document.createElement('li');
+      li.className = laTraLoi ? 'ph-mot ph-mot-con' : 'ph-mot';
+
+      const dau = document.createElement('div');
+      dau.className = 'ph-mot-dau';
+
+      const ten = document.createElement('strong');
+      ten.textContent = ph.ten;
+      dau.append(ten);
+
+      if (ph.so_sao) {
+        const sao = document.createElement('span');
+        sao.className = 'ph-mot-sao';
+        sao.textContent = veSao(ph.so_sao);
+        sao.setAttribute('aria-label', `${ph.so_sao} trên 5 sao`);
+        dau.append(sao);
+      }
+
+      const ngay = document.createElement('time');
+      ngay.className = 'ph-mot-ngay';
+      ngay.dateTime = ph.tao_luc;
+      ngay.textContent = doiNgay(ph.tao_luc);
+      dau.append(ngay);
+
+      const chu = document.createElement('p');
+      chu.className = 'ph-mot-chu';
+      chu.textContent = ph.noi_dung;
+
+      li.append(dau, chu);
+
+      if (!laTraLoi) {
+        const nut = document.createElement('button');
+        nut.type = 'button';
+        nut.className = 'ph-nut-tra-loi';
+        nut.textContent = 'Trả lời';
+        nut.addEventListener('click', () => datTraLoi(ph.id, ph.ten));
+        li.append(nut);
+      }
+      return li;
+    }
+
+    function datTraLoi(id: number | null, ten = '') {
+      traLoiCho = id;
+      dangTraLoiEl.hidden = id === null;
+      traLoiTenEl.textContent = ten;
+      if (id !== null) oChu.focus();
+    }
+
+    $('[data-huy-tra-loi]').addEventListener('click', () => datTraLoi(null));
+
+    function veDanhSach(ds: PhanHoiHang[]) {
+      dsEl.replaceChildren();
+
+      const capMot = ds.filter((p) => p.tra_loi_cho === null);
+      const conTheoCha = new Map<number, PhanHoiHang[]>();
+      for (const p of ds) {
+        if (p.tra_loi_cho === null) continue;
+        const arr = conTheoCha.get(p.tra_loi_cho) ?? [];
+        arr.push(p);
+        conTheoCha.set(p.tra_loi_cho, arr);
+      }
+
+      for (const p of capMot) {
+        dsEl.append(veMot(p, false));
+        for (const con of conTheoCha.get(p.id) ?? []) dsEl.append(veMot(con, true));
+      }
+    }
+
+    async function nap() {
+      try {
+        const res = await fetch(`/api/phan-hoi?bai=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+
+        if (data.loi) {
+          trangThaiEl.textContent = data.loi;
+          return;
+        }
+
+        veDanhSach(data.danh_sach ?? []);
+        trangThaiEl.textContent = data.tong
+          ? ''
+          : 'Chưa có ý kiến nào. Bạn là người đầu tiên nhé.';
+        trangThaiEl.hidden = data.tong > 0;
+
+        if (data.diem_tb) {
+          tomTatEl.hidden = false;
+          saoTbEl.textContent = veSao(Math.round(data.diem_tb));
+          diemChuEl.textContent = `${data.diem_tb}/5 · ${data.so_danh_gia} đánh giá`;
+        }
+
+        thichSoEl.textContent = String(data.so_thich ?? 0);
+        nutThich.setAttribute('aria-pressed', String(Boolean(data.da_thich)));
+        nutThich.classList.toggle('da-thich', Boolean(data.da_thich));
+        nutThich.disabled = false;
+      } catch {
+        trangThaiEl.textContent = 'Chưa tải được ý kiến. Bạn thử tải lại trang giúp mình.';
+      }
+    }
+
+    nutThich.addEventListener('click', async () => {
+      nutThich.disabled = true;
+      try {
+        const res = await fetch('/api/phan-hoi/thich', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bai_slug: slug }),
+        });
+        const data = await res.json();
+        if (!data.loi) {
+          thichSoEl.textContent = String(data.so_thich);
+          nutThich.setAttribute('aria-pressed', String(data.da_thich));
+          nutThich.classList.toggle('da-thich', data.da_thich);
+        }
+      } finally {
+        nutThich.disabled = false;
+      }
+    });
+
+    oChu.addEventListener('input', () => {
+      demEl.textContent = String(oChu.value.length);
+    });
+
+    // Cho phép bỏ chọn số sao sau khi đã lỡ bấm.
+    const oSao = [...form.querySelectorAll<HTMLInputElement>('[name="so_sao"]')];
+    for (const o of oSao) o.addEventListener('change', () => (nutXoaSao.hidden = false));
+    nutXoaSao.addEventListener('click', () => {
+      for (const o of oSao) o.checked = false;
+      nutXoaSao.hidden = true;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loiEl.hidden = true;
+      xongEl.hidden = true;
+
+      const fd = new FormData(form);
+      const than = {
+        bai_slug: slug,
+        ten: String(fd.get('ten') ?? '').trim(),
+        email: String(fd.get('email') ?? '').trim(),
+        noi_dung: String(fd.get('noi_dung') ?? '').trim(),
+        so_sao: fd.get('so_sao') ? Number(fd.get('so_sao')) : null,
+        tra_loi_cho: traLoiCho,
+        dong_y: fd.get('dong_y') === 'on',
+        turnstile: String(fd.get('cf-turnstile-response') ?? ''),
+      };
+
+      if (!than.ten || !than.noi_dung) {
+        loiEl.textContent = 'Bạn cần điền tên và nội dung ý kiến.';
+        loiEl.hidden = false;
+        return;
+      }
+      if (!than.dong_y) {
+        loiEl.textContent = 'Bạn cần đồng ý với chính sách quyền riêng tư trước khi gửi.';
+        loiEl.hidden = false;
+        return;
+      }
+
+      nutGui.disabled = true;
+      nutGui.textContent = 'Đang gửi…';
+
+      try {
+        const res = await fetch('/api/phan-hoi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(than),
+        });
+        const data = await res.json();
+
+        if (data.loi) {
+          loiEl.textContent = data.loi;
+          loiEl.hidden = false;
+        } else {
+          xongEl.textContent = data.thong_bao ?? 'Đã gửi, cảm ơn bạn.';
+          xongEl.hidden = false;
+          form.reset();
+          demEl.textContent = '0';
+          nutXoaSao.hidden = true;
+          datTraLoi(null);
+        }
+      } catch {
+        loiEl.textContent = 'Chưa gửi được. Bạn kiểm tra kết nối mạng rồi thử lại nhé.';
+        loiEl.hidden = false;
+      } finally {
+        // Mỗi vé Turnstile chỉ dùng được một lần, gửi xong phải xin vé mới.
+        (window as any).turnstile?.reset?.();
+        nutGui.disabled = false;
+        nutGui.textContent = 'Gửi ý kiến';
+      }
+    });
+
+    nap();
+  }
+</script>
+
+<style>
+  .ph {
+    max-width: 900px;
+    margin: var(--space) auto 0;
+    padding: 0 clamp(16px, 4vw, 48px) var(--space);
+    border-top: 1px solid var(--line);
+  }
+  .ph-dau {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin: 32px 0 4px;
+  }
+  .ph-dau h2 { margin: 0; font-size: 1.6rem; flex: 1 1 auto; }
+
+  .ph-tom-tat { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--ink-soft); }
+  .ph-sao-tb { color: var(--marigold); letter-spacing: 2px; }
+
+  .ph-thich {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--paper-2);
+    color: var(--ink); font: inherit; font-size: 0.9rem; cursor: pointer;
+  }
+  .ph-thich:hover:not(:disabled) { border-color: var(--river); }
+  .ph-thich:disabled { opacity: 0.6; cursor: default; }
+  .ph-thich.da-thich { background: var(--river); color: var(--paper); border-color: var(--river); }
+  .ph-thich-chu { font-size: 0.82rem; color: inherit; opacity: 0.85; }
+
+  .ph-trang-thai { color: var(--ink-soft); font-style: italic; }
+
+  .ph-ds { list-style: none; margin: 20px 0 0; padding: 0; }
+  .ph-mot {
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+  .ph-mot-con {
+    margin-left: clamp(16px, 5vw, 44px);
+    border-top: 1px dashed var(--line);
+  }
+  .ph-mot-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .ph-mot-sao { color: var(--marigold); letter-spacing: 1px; font-size: 0.85rem; }
+  .ph-mot-ngay { color: var(--ink-soft); font-size: 0.8rem; }
+  .ph-mot-chu { margin: 6px 0 0; white-space: pre-wrap; }
+  .ph-nut-tra-loi {
+    margin-top: 8px; padding: 0; border: 0; background: none;
+    color: var(--river); font: inherit; font-size: 0.85rem; cursor: pointer;
+  }
+  .ph-nut-tra-loi:hover { text-decoration: underline; }
+
+  .ph-form {
+    margin-top: 36px; padding: 22px;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .ph-form h3 { margin: 0 0 14px; font-size: 1.2rem; }
+  .ph-form label { display: block; font-size: 0.88rem; color: var(--ink-soft); }
+  .ph-form input[type='text'],
+  .ph-form input[type='email'],
+  .ph-form textarea {
+    display: block; width: 100%; margin-top: 5px; padding: 9px 11px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper); color: var(--ink); font: inherit; font-size: 0.95rem;
+  }
+  .ph-form textarea { resize: vertical; }
+  .ph-form :is(input, textarea):focus-visible { outline: 2px solid var(--river); outline-offset: 1px; }
+
+  .ph-hang { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 620px) { .ph-hang { grid-template-columns: 1fr; } }
+
+  .ph-bat-buoc { color: #8c3a28; }
+  .ph-phu { font-size: 0.78rem; opacity: 0.8; }
+  .ph-an {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+
+  .ph-o-chu { position: relative; }
+  .ph-dem {
+    display: block; text-align: right; font-size: 0.75rem; color: var(--ink-soft); margin-top: 3px;
+  }
+
+  .ph-sao { border: 0; padding: 0; margin: 0 0 14px; }
+  .ph-sao legend { font-size: 0.88rem; color: var(--ink-soft); padding: 0; }
+  .ph-sao legend span { font-size: 0.78rem; opacity: 0.8; }
+  .ph-sao-boc { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+  /* HTML xếp 5→1, row-reverse lật lại thành 1→5 khi hiển thị. */
+  .ph-sao-chon { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 2px; }
+  .ph-sao-chon input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .ph-sao-chon label { font-size: 1.6rem; line-height: 1; color: var(--line); cursor: pointer; }
+  /* ~ chỉ chọn phần tử đứng sau trong HTML, tức các sao có số nhỏ hơn. */
+  .ph-sao-chon input:checked ~ label,
+  .ph-sao-chon label:hover,
+  .ph-sao-chon label:hover ~ label { color: var(--marigold); }
+  .ph-sao-chon input:focus-visible + label { outline: 2px solid var(--river); outline-offset: 2px; }
+  .ph-xoa-sao {
+    padding: 0; border: 0; background: none;
+    color: var(--river); font: inherit; font-size: 0.8rem; cursor: pointer;
+  }
+
+  .ph-dong-y { display: flex; gap: 9px; align-items: flex-start; margin: 14px 0; font-size: 0.85rem; }
+  .ph-dong-y input { margin-top: 3px; flex: none; }
+
+  .ph-tra-loi {
+    display: flex; gap: 10px; align-items: center;
+    margin: 0 0 14px; padding: 8px 12px;
+    background: var(--paper); border-left: 3px solid var(--marigold); border-radius: 6px;
+    font-size: 0.87rem;
+  }
+  .ph-tra-loi button {
+    border: 0; background: none; color: var(--river); font: inherit; font-size: 0.82rem; cursor: pointer;
+  }
+
+  .ph-form [data-gui] {
+    padding: 10px 22px; border: 0; border-radius: 999px;
+    background: var(--river); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .ph-form [data-gui]:hover:not(:disabled) { background: var(--river-deep); }
+  .ph-form [data-gui]:disabled { opacity: 0.65; cursor: default; }
+
+  .ph-loi { color: #8c3a28; font-size: 0.88rem; }
+  .ph-xong { color: var(--river); font-weight: 600; font-size: 0.9rem; }
+  .ph-luu-y { margin: 10px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
+
+  .cf-turnstile { margin: 14px 0; }
+</style>

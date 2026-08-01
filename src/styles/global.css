@@ -22,6 +22,11 @@
 
 * { box-sizing: border-box; }
 
+/* Thuộc tính hidden chỉ đặt display:none ở mức mặc định của trình duyệt, nên
+   bất kỳ quy tắc display nào của ta (flex, grid...) cũng ghi đè được nó và
+   phần tử vẫn hiện. Dòng này giữ cho hidden luôn có tác dụng. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--paper);
