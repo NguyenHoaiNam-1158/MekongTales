@@ -1,12 +1,17 @@
 ---
+import { anhToiUu } from '../lib/img';
+
 const path = Astro.url.pathname;
+
+const LOGO =
+  'https://res.cloudinary.com/doljk7ymy/image/upload/v1785073505/ChatGPT_Image_18_24_37_11_thg_7_2026_c1om6c.png';
 ---
 <header class="site-header">
   <div class="wrap bar">
     <a href="/" class="brand">
       <img
         class="logo"
-        src="https://res.cloudinary.com/doljk7ymy/image/upload/v1785073505/ChatGPT_Image_18_24_37_11_thg_7_2026_c1om6c.png"
+        src={anhToiUu(LOGO, { w: 80 })}
         alt="Logo Mekong Tales"
         width="40"
         height="40"
@@ -49,6 +54,7 @@ const path = Astro.url.pathname;
       </div>
 
       <a href="/lich-su" class:list={['nav-link', { active: path === '/lich-su' }]}>Lịch sử</a>
+      <a href="/ban-do" class:list={['nav-link', { active: path === '/ban-do' }]}>Bản đồ</a>
     </nav>
   </div>
 </header>

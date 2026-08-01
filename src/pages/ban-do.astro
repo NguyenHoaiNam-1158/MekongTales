@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BanDoTinh from '../components/BanDoTinh.astro';
+---
+
+<BaseLayout
+  title="Bản đồ di sản"
+  mo_ta="Khám phá các địa danh, làng nghề và câu chuyện dọc sông Tiền qua bản đồ tương tác."
+>
+  <section class="dau-trang">
+    <div class="wrap">
+      <span class="eyebrow">Khám phá</span>
+      <h1>Bản đồ di sản sông Tiền</h1>
+      <p>Mỗi điểm trên bản đồ là một câu chuyện — một làng nghề, một món ăn, một vùng đất ven sông.</p>
+    </div>
+  </section>
+
+  <div class="wrap noi-dung">
+    <BanDoTinh />
+  </div>
+</BaseLayout>
+
+<style>
+  .dau-trang {
+    background: var(--river);
+    color: var(--paper);
+    padding: 48px 0;
+  }
+  .dau-trang h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 8px 0 10px;
+  }
+  .dau-trang p { max-width: 620px; color: #e6e0d2; margin: 0; }
+  .noi-dung { padding: var(--space) 0; }
+</style>

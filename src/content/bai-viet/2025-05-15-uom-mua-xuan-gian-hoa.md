@@ -48,6 +48,11 @@ khoi_anh:
     chu_thich: 'Người làm hoa Sa Đéc bên sắc xuân của làng nghề'
     anh:
       - { src: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784964531/unnamed_9_rthppr.jpg', alt: 'Nhóm người mặc áo dài vàng chụp ảnh giữa vườn hoa Tết' }
+dia_diem:
+  tinh_slug: 'dong-thap'
+  ten: 'Làng hoa Sa Đéc'
+  lat: 10.293
+  lng: 105.756
 ---
 
 Có một nơi ở Đồng bằng sông Cửu Long mà mùa xuân dường như đến sớm hơn tất cả. Khi nhiều vùng quê còn chìm trong màn sương cuối năm, những luống cúc đã bắt đầu nhuộm vàng cả cánh đồng, vạn thọ vươn mình dưới nắng sớm, hồng nhung bung cánh dọc theo những con rạch nhỏ. Người ta gọi nơi ấy là **làng hoa Sa Đéc**.

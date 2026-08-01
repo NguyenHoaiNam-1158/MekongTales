@@ -20,6 +20,7 @@ const baiViet = defineCollection({
       .object({
         ten: z.string().optional(),
         tinh: z.string().optional(),
+        tinh_slug: z.string().optional(),
         lat: z.number().optional(),
         lng: z.number().optional(),
       })

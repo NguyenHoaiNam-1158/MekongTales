@@ -1,0 +1,114 @@
+[
+  {
+    "ma": "31",
+    "ten": "Đồng Tháp",
+    "slug": "dong-thap",
+    "sap_nhap": ["Đồng Tháp", "Tiền Giang"],
+    "slug_cu": ["dong-thap", "tien-giang"],
+    "gioi_thieu": "Trải dài hai bờ sông Tiền từ vùng trũng Đồng Tháp Mười ra tới cửa biển, nơi có cù lao Thới Sơn, chợ nổi Cái Bè, làng hoa Sa Đéc và những vườn cây trái trĩu quả.",
+    "dac_san": [
+      "Hủ tiếu Mỹ Tho",
+      "Nem Lai Vung",
+      "Bánh phồng tôm Sa Giang",
+      "Vú sữa Lò Rèn",
+      "Sen Tháp Mười"
+    ],
+    "di_tich": [
+      "Cồn Thới Sơn",
+      "Chùa Vĩnh Tràng",
+      "Làng hoa Sa Đéc",
+      "Vườn quốc gia Tràm Chim",
+      "Di tích Rạch Gầm – Xoài Mút",
+      "Nhà cổ Huỳnh Thuỷ Lê"
+    ]
+  },
+  {
+    "ma": "30",
+    "ten": "Vĩnh Long",
+    "slug": "vinh-long",
+    "sap_nhap": ["Vĩnh Long", "Trà Vinh", "Bến Tre"],
+    "slug_cu": ["vinh-long", "tra-vinh", "ben-tre"],
+    "gioi_thieu": "Vùng cù lao kẹp giữa sông Tiền và sông Hậu, gồm xứ Dừa Bến Tre, đất Trà Vinh đậm màu văn hoá Khmer và những lò gốm đỏ Mang Thít bên bờ kênh.",
+    "dac_san": [
+      "Kẹo dừa Bến Tre",
+      "Bánh tráng Mỹ Lồng",
+      "Dừa sáp Cầu Kè",
+      "Cam sành Tam Bình",
+      "Bún suông Trà Vinh"
+    ],
+    "di_tich": [
+      "Cồn Phụng",
+      "Khu di tích Đồng Khởi",
+      "Ao Bà Om",
+      "Chùa Âng",
+      "Văn Thánh Miếu Vĩnh Long",
+      "Làng gốm Mang Thít"
+    ]
+  },
+  {
+    "ma": "33",
+    "ten": "Cần Thơ",
+    "slug": "can-tho",
+    "sap_nhap": ["Cần Thơ", "Sóc Trăng", "Hậu Giang"],
+    "slug_cu": ["can-tho", "soc-trang", "hau-giang"],
+    "gioi_thieu": "Tây Đô — trung tâm của châu thổ, nơi ba dòng văn hoá Kinh, Khmer và Hoa gặp nhau trên bến chợ nổi Cái Răng, Ngã Bảy và những ngôi chùa Khmer trăm tuổi.",
+    "dac_san": [
+      "Bánh cống",
+      "Bún nước lèo Sóc Trăng",
+      "Bánh pía",
+      "Cá thác lác Hậu Giang",
+      "Nem nướng Cái Răng"
+    ],
+    "di_tich": [
+      "Chợ nổi Cái Răng",
+      "Nhà cổ Bình Thuỷ",
+      "Chùa Dơi",
+      "Chùa Đất Sét",
+      "Chợ nổi Ngã Bảy"
+    ]
+  },
+  {
+    "ma": "32",
+    "ten": "An Giang",
+    "slug": "an-giang",
+    "sap_nhap": ["An Giang", "Kiên Giang"],
+    "slug_cu": ["an-giang", "kien-giang"],
+    "gioi_thieu": "Dải đất biên giới Tây Nam kéo từ vùng Thất Sơn linh thiêng qua đồng lũ Châu Đốc ra tới biển Tây và đảo Phú Quốc, nơi lưu dấu nền văn hoá Óc Eo cổ.",
+    "dac_san": [
+      "Mắm Châu Đốc",
+      "Đường thốt nốt",
+      "Bún cá Long Xuyên",
+      "Nước mắm Phú Quốc",
+      "Bún kèn Hà Tiên"
+    ],
+    "di_tich": [
+      "Miếu Bà Chúa Xứ Núi Sam",
+      "Rừng tràm Trà Sư",
+      "Di chỉ Óc Eo – Ba Thê",
+      "Hà Tiên thập cảnh",
+      "Đảo Phú Quốc"
+    ]
+  },
+  {
+    "ma": "34",
+    "ten": "Cà Mau",
+    "slug": "ca-mau",
+    "sap_nhap": ["Cà Mau", "Bạc Liêu"],
+    "slug_cu": ["ca-mau", "bac-lieu"],
+    "gioi_thieu": "Chóp cùng cực Nam Tổ quốc với rừng ngập mặn Mũi Cà Mau, rừng tràm U Minh Hạ và đất Bạc Liêu — cái nôi của bản Dạ cổ hoài lang và đờn ca tài tử.",
+    "dac_san": [
+      "Cua Cà Mau",
+      "Ba khía Rạch Gốc",
+      "Bánh tằm Ngan Dừa",
+      "Muối Bạc Liêu",
+      "Mắm cá lóc U Minh"
+    ],
+    "di_tich": [
+      "Mũi Cà Mau",
+      "Vườn quốc gia U Minh Hạ",
+      "Nhà Công tử Bạc Liêu",
+      "Khu lưu niệm nhạc sĩ Cao Văn Lầu",
+      "Đầm Thị Tường"
+    ]
+  }
+]

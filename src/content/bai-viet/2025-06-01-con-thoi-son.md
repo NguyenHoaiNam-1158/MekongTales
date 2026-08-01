@@ -9,6 +9,11 @@ tac_gia: 'Mekong Tales'
 ngay_dang: 2025-06-01
 noi_bat: true
 draft: false
+dia_diem:
+  tinh_slug: 'tien-giang'
+  ten: 'Cồn Thới Sơn'
+  lat: 10.348
+  lng: 106.353
 ---
 
 Theo dòng sông Tiền, đi qua địa phận tỉnh Tiền Giang cũ, nay thuộc tỉnh Đồng Tháp, cồn Thới Sơn hay còn được biết đến với tên gọi cồn Lân đang dần trở thành điểm đến hấp dẫn của du lịch miền Tây. Chỉ cách trung tâm TP. Hồ Chí Minh khoảng 70 km đường bộ, cồn Thới Sơn thuộc phường Thới Sơn, tỉnh Đồng Tháp, có diện tích khoảng 1.200 ha và là cồn lớn nhất trong hệ thống Tứ linh Long – Lân – Quy – Phụng. Điều khiến du khách ấn tượng ngay từ những phút đầu đặt chân đến nơi đây chính là màu xanh trải dài của vườn cây ăn trái, những hàng dừa nước ven sông cùng mạng lưới kênh rạch chằng chịt đặc trưng của vùng sông nước.

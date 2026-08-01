@@ -1,0 +1,122 @@
+---
+import { getCollection } from 'astro:content';
+
+// Chỉ lấy bài đã xuất bản VÀ có toạ độ.
+const bai = (await getCollection('bai-viet')).filter(
+  (b) => !b.data.draft && b.data.dia_diem?.lat && b.data.dia_diem?.lng
+);
+
+const TEN_CHUYEN_MUC: Record<string, string> = {
+  'ki-uc': 'Kí ức',
+  'am-thuc': 'Ẩm thực',
+  'lang-nghe': 'Làng nghề',
+  'lich-su': 'Lịch sử',
+};
+
+// Dữ liệu tối giản đưa xuống client, không lộ gì thừa.
+const diem = bai.map((b) => ({
+  ten: b.data.dia_diem!.ten ?? b.data.title,
+  lat: b.data.dia_diem!.lat,
+  lng: b.data.dia_diem!.lng,
+  tieu_de: b.data.title,
+  chuyen_muc: TEN_CHUYEN_MUC[b.data.chuyen_muc] ?? '',
+  url: `/bai-viet/${b.id}`,
+}));
+---
+
+<div class="ban-do-boc">
+  <div id="ban-do" role="application" aria-label="Bản đồ các địa danh"></div>
+  <p class="ghi-chu">Chạm vào điểm trên bản đồ để xem bài viết về nơi đó.</p>
+</div>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+
+<script define:vars={{ diem }}>
+  // Nạp Leaflet từ CDN rồi mới dựng bản đồ.
+  function napLeaflet() {
+    return new Promise((res, rej) => {
+      if (window.L) return res(window.L);
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+      s.crossOrigin = '';
+      s.onload = () => res(window.L);
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  napLeaflet().then((L) => {
+    if (!diem.length) return;
+
+    // Tâm bản đồ = trung bình toạ độ các điểm.
+    const latTb = diem.reduce((s, d) => s + d.lat, 0) / diem.length;
+    const lngTb = diem.reduce((s, d) => s + d.lng, 0) / diem.length;
+
+    const map = L.map('ban-do', { scrollWheelZoom: false }).setView([latTb, lngTb], 9);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+
+    const thoat = (t) =>
+      String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+    const nhom = [];
+    for (const d of diem) {
+      const m = L.marker([d.lat, d.lng]).addTo(map);
+      m.bindPopup(
+        `<div class="pin">
+          <span class="pin-cm">${thoat(d.chuyen_muc)}</span>
+          <strong>${thoat(d.tieu_de)}</strong>
+          <a href="${d.url}">Đọc bài →</a>
+        </div>`
+      );
+      nhom.push([d.lat, d.lng]);
+    }
+
+    // Cho khung nhìn ôm trọn tất cả điểm.
+    if (nhom.length > 1) map.fitBounds(nhom, { padding: [40, 40] });
+
+    // Bật lăn chuột zoom chỉ khi người dùng bấm vào bản đồ, tránh cướp scroll trang.
+    map.on('focus', () => map.scrollWheelZoom.enable());
+    map.on('blur', () => map.scrollWheelZoom.disable());
+  });
+</script>
+
+<style>
+  .ban-do-boc { margin: 0 auto; max-width: var(--wrap); }
+  #ban-do {
+    height: 460px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    z-index: 1;
+  }
+  .ghi-chu {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    #ban-do { height: 360px; }
+  }
+
+  /* Nội dung popup — dùng :global vì Leaflet chèn ngoài scope Astro */
+  :global(.pin) { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+  :global(.pin-cm) {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--marigold);
+  }
+  :global(.pin strong) { font-size: 0.98rem; line-height: 1.4; color: var(--ink); }
+  :global(.pin a) { color: var(--river); font-weight: 500; font-size: 0.9rem; }
+</style>
