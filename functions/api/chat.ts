@@ -22,6 +22,11 @@ interface NguCanh {
 
 const TOI_DA_KY_TU = 500;
 
+// Đã đối chiếu với `wrangler ai models` và chạy thử bằng câu hỏi tiếng Việt:
+// bản 8B trả lời cụt và bỏ luôn phần ghi số nguồn mà HE_THONG yêu cầu, nên
+// chọn bản 70B dù chậm hơn khoảng 1,5 giây.
+const MODEL_MAC_DINH = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
 const json = (data: unknown, status = 200): Response =>
   new Response(JSON.stringify(data), {
     status,
@@ -53,7 +58,10 @@ export const onRequestPost = async ({ request, env }: NguCanh): Promise<Response
   const cauHinh: CauHinhLLM = {
     nhaCungCap,
     khoa: env.LLM_KHOA ?? '',
-    model: env.LLM_MODEL ?? '@cf/meta/llama-3.1-8b-instruct',
+    // Workers AI gỡ model theo thời gian. @cf/meta/llama-3.1-8b-instruct đã bị
+    // gỡ ngày 30/5/2026 khiến trợ lý chết với AiError 5028.
+    // Xem model còn dùng được: npx wrangler ai models
+    model: env.LLM_MODEL ?? MODEL_MAC_DINH,
     ai: env.AI,
   };
 
