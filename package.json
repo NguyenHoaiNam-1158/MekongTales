@@ -13,7 +13,8 @@
     "kho-tri-thuc": "node scripts/tao-kho-tri-thuc.mjs",
     "dev:api": "astro build && wrangler pages dev",
     "db:tao": "wrangler d1 execute mekong-tales --local --file=db/schema.sql",
-    "db:tao-that": "wrangler d1 execute mekong-tales --remote --file=db/schema.sql"
+    "db:tao-that": "wrangler d1 execute mekong-tales --remote --file=db/schema.sql",
+    "kiem-tra": "node scripts/kiem-tra-trang.mjs"
   },
   "dependencies": {
     "astro": "^7.1.1",
