@@ -1,7 +1,7 @@
 ---
 title: 'Khám phá du lịch Bến Tre: Xứ Dừa miền Tây'
 mo_ta: 'Cách TP. Hồ Chí Minh chưa đầy hai giờ di chuyển, Bến Tre từ lâu được biết đến là "thủ phủ dừa" của cả nước.'
-anh_bia: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1784701429/unnamed_1_m5qb7s.jpg'
+anh_bia: 'https://res.cloudinary.com/doljk7ymy/image/upload/v1785626284/1785626240080_411498592272121811_g3605391540195554670_2240bc77af013a531ee18aa0f5c84e3c_em3cgt.jpg'
 anh_bia_alt: 'Vườn dừa xanh mát ở Bến Tre'
 chuyen_muc: 'ki-uc'
 tags: ['du lịch', 'Bến Tre', 'xứ dừa']
