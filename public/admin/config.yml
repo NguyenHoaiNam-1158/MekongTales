@@ -5,6 +5,26 @@ backend:
   # Phải khớp nhánh mà Cloudflare Pages build.
   branch: master
 
+  # ---------------------------------------------------------------------------
+  # Nút "Sign In with GitHub" hiện báo Not Found.
+  #
+  # Không khai base_url thì CMS mặc định gửi người dùng sang
+  #   https://api.netlify.com/auth?provider=github&site_id=mekongtales.pages.dev
+  # tức nhờ NETLIFY xác thực hộ — nhưng trang này nằm trên Cloudflare Pages,
+  # Netlify không biết site này nên trả về Not Found. Đây là mặc định thừa kế
+  # từ Netlify CMS, không phải lỗi cấu hình repo (repo và nhánh đều đúng).
+  #
+  # Hai cách xử lý:
+  #
+  # 1. NHANH — dùng nút "Sign In Using Access Token" ngay bên dưới nút GitHub,
+  #    dán Personal Access Token của GitHub vào. Không cần dựng gì thêm.
+  #
+  # 2. ĐÚNG BÀI cho cả nhóm — dựng một OAuth proxy rồi bỏ dấu # ở dòng dưới:
+  #    https://github.com/sveltia/sveltia-cms-auth (Cloudflare Worker)
+  #
+  # base_url: https://<ten-worker>.workers.dev
+  # ---------------------------------------------------------------------------
+
 site_url: https://mekongtales.pages.dev
 
 # KHÔNG bật publish_mode: editorial_workflow.
