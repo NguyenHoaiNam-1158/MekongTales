@@ -7,8 +7,15 @@ backend:
 
 site_url: https://mekongtales.pages.dev
 
-# Bài đăng thành Pull Request để duyệt. Nếu /admin lỗi khi mở, comment dòng này lại.
-publish_mode: editorial_workflow
+# KHÔNG bật publish_mode: editorial_workflow.
+#
+# Sveltia CMS không hỗ trợ tính năng này và đã tuyên bố sẽ không làm, nên đặt
+# vào chỉ tổ hiện cảnh báo trong console mà chẳng có tác dụng gì:
+# https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented
+#
+# Nghĩa là bấm Publish là commit THẲNG vào master và trang deploy lại ngay,
+# không qua bước duyệt nào. Lớp an toàn thay thế là trường "Bản nháp" (draft)
+# mặc định BẬT: bài mới không hiện trên web cho tới khi có người tắt nó đi.
 
 media_folder: "public/uploads"
 public_folder: "/uploads"

@@ -10,7 +10,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Duyệt ý kiến" mo_ta="Trang nội bộ của ban biên tập Mekong Tales." noindex>
   <div class="wrap qt">
-    <h1>Duyệt ý kiến bạn đọc</h1>
+    <h1>Quản trị Mekong Tales</h1>
+
+    <nav class="qt-cua">
+      <a class="qt-cua-mot" href="/admin/">
+        <strong>Viết &amp; quản lý bài viết</strong>
+        <span>Thêm bài mới, sửa bài cũ, podcast, phóng sự, hồ sơ thành viên. Mở trang soạn thảo.</span>
+      </a>
+      <div class="qt-cua-mot dang-o-day">
+        <strong>Duyệt ý kiến &amp; số liệu</strong>
+        <span>Bạn đang ở đây.</span>
+      </div>
+    </nav>
 
     <form class="qt-khoa" data-form-khoa>
       <label>
@@ -368,6 +379,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <style>
   .qt { max-width: 900px; padding-top: 40px; padding-bottom: var(--space); }
   .qt h1 { font-size: 1.8rem; }
+
+  .qt-cua { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 4px; }
+  @media (max-width: 640px) { .qt-cua { grid-template-columns: 1fr; } }
+  .qt-cua-mot {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 16px 18px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--paper-2);
+    color: var(--ink); text-decoration: none;
+  }
+  .qt-cua-mot strong { font-family: var(--font-display); font-size: 1.05rem; }
+  .qt-cua-mot span { font-size: 0.83rem; color: var(--ink-soft); line-height: 1.5; }
+  a.qt-cua-mot:hover { border-color: var(--river); background: var(--paper); text-decoration: none; }
+  .qt-cua-mot.dang-o-day { background: transparent; border-style: dashed; opacity: 0.75; }
 
   .qt-khoa {
     display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px;
