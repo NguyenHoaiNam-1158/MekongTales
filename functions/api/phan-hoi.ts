@@ -10,6 +10,7 @@ import {
   kiemTraPhanHoi,
   guiQuaNhieu,
   CHONG_DOI,
+  KHOA_TURNSTILE_THU,
   type EnvPhanHoi,
 } from '../_lib/phanHoi';
 
@@ -82,6 +83,13 @@ export const onRequestGet = async ({ request, env }: NguCanh): Promise<Response>
       diem_tb: diem?.diem_tb ? Math.round(diem.diem_tb * 10) / 10 : null,
       so_thich: thich?.n ?? 0,
       da_thich: daThich,
+      // Gửi kèm khoá công khai Turnstile để trình duyệt tự dựng widget.
+      //
+      // Trước đây khoá này được nhúng sẵn vào HTML lúc build, nhưng biến lúc
+      // build và biến lúc chạy trên Cloudflare Pages là hai chỗ khác nhau, rất
+      // dễ đặt nhầm mà không có dấu hiệu gì. Đưa về đây thì chỉ còn một chỗ để
+      // cấu hình, và đổi khoá không cần build lại trang.
+      turnstile_site_key: env.TURNSTILE_SITE_KEY || KHOA_TURNSTILE_THU,
     });
   } catch (e) {
     console.error('phan-hoi GET:', e);

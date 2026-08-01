@@ -2,8 +2,6 @@
 // Khung bình luận + đánh giá sao dưới mỗi bài viết.
 // Trang là tĩnh nên toàn bộ dữ liệu nạp từ /api/phan-hoi lúc người đọc mở bài.
 
-import { khoaTurnstile } from '../lib/turnstile';
-
 interface Props {
   slug: string;
 }
@@ -83,7 +81,8 @@ const { slug } = Astro.props;
       </span>
     </label>
 
-    <div class="cf-turnstile" data-sitekey={khoaTurnstile} data-language="vi"></div>
+    {/* Widget dựng bằng JS sau khi lấy khoá công khai từ /api/phan-hoi. */}
+    <div class="ph-turnstile" data-turnstile></div>
 
     <p class="ph-loi" data-loi role="alert" hidden></p>
     <p class="ph-xong" data-xong role="status" hidden></p>
@@ -93,7 +92,12 @@ const { slug } = Astro.props;
   </form>
 </section>
 
-<script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+{/* render=explicit: chờ lấy được khoá công khai từ API rồi mới dựng widget. */}
+<script
+  is:inline
+  async
+  defer
+  src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 
 <script>
   const goc = document.querySelector<HTMLElement>('[data-ph]');
@@ -129,6 +133,37 @@ const { slug } = Astro.props;
     }
 
     let traLoiCho: number | null = null;
+    let maWidget: string | null = null;
+
+    /** Script Turnstile nạp bất đồng bộ nên phải chờ nó sẵn sàng. */
+    function choTurnstile(hanGiay = 10): Promise<any> {
+      return new Promise((res) => {
+        const w = window as any;
+        if (w.turnstile) return res(w.turnstile);
+        const dem = setInterval(() => {
+          if (w.turnstile) {
+            clearInterval(dem);
+            res(w.turnstile);
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(dem);
+          res(null);
+        }, hanGiay * 1000);
+      });
+    }
+
+    async function dungTurnstile(sitekey: string) {
+      const oTurnstile = goc.querySelector<HTMLElement>('[data-turnstile]');
+      if (!oTurnstile || !sitekey || maWidget !== null) return;
+
+      const ts = await choTurnstile();
+      if (!ts) {
+        console.warn('[phan-hoi] Khong nap duoc Turnstile.');
+        return;
+      }
+      maWidget = ts.render(oTurnstile, { sitekey, language: 'vi' });
+    }
 
     const veSao = (n: number) => '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
 
@@ -236,6 +271,8 @@ const { slug } = Astro.props;
         nutThich.setAttribute('aria-pressed', String(Boolean(data.da_thich)));
         nutThich.classList.toggle('da-thich', Boolean(data.da_thich));
         nutThich.disabled = false;
+
+        if (data.turnstile_site_key) dungTurnstile(data.turnstile_site_key);
       } catch {
         trangThaiEl.textContent = 'Chưa tải được ý kiến. Bạn thử tải lại trang giúp mình.';
       }
@@ -277,6 +314,17 @@ const { slug } = Astro.props;
       loiEl.hidden = true;
       xongEl.hidden = true;
 
+      const ts = (window as any).turnstile;
+      const veTurnstile =
+        maWidget !== null && ts?.getResponse ? (ts.getResponse(maWidget) ?? '') : '';
+
+      if (!veTurnstile) {
+        loiEl.textContent =
+          'Phần kiểm tra chống thư rác chưa xong. Bạn chờ vài giây rồi gửi lại giúp mình.';
+        loiEl.hidden = false;
+        return;
+      }
+
       const fd = new FormData(form);
       const than = {
         bai_slug: slug,
@@ -286,7 +334,7 @@ const { slug } = Astro.props;
         so_sao: fd.get('so_sao') ? Number(fd.get('so_sao')) : null,
         tra_loi_cho: traLoiCho,
         dong_y: fd.get('dong_y') === 'on',
-        turnstile: String(fd.get('cf-turnstile-response') ?? ''),
+        turnstile: veTurnstile,
       };
 
       if (!than.ten || !than.noi_dung) {
@@ -327,7 +375,7 @@ const { slug } = Astro.props;
         loiEl.hidden = false;
       } finally {
         // Mỗi vé Turnstile chỉ dùng được một lần, gửi xong phải xin vé mới.
-        (window as any).turnstile?.reset?.();
+        if (maWidget !== null) ts?.reset?.(maWidget);
         nutGui.disabled = false;
         nutGui.textContent = 'Gửi ý kiến';
       }
@@ -461,5 +509,5 @@ const { slug } = Astro.props;
   .ph-xong { color: var(--river); font-weight: 600; font-size: 0.9rem; }
   .ph-luu-y { margin: 10px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
 
-  .cf-turnstile { margin: 14px 0; }
+  .ph-turnstile { margin: 14px 0; min-height: 65px; }
 </style>

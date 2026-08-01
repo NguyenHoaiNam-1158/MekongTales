@@ -23,9 +23,20 @@ export interface EnvPhanHoi {
   MUOI_BAM?: string;
   /** Khoá bí mật Turnstile. Bắt buộc. */
   TURNSTILE_KHOA?: string;
+  /** Khoá công khai Turnstile. Không bí mật, được gửi xuống trình duyệt. */
+  TURNSTILE_SITE_KEY?: string;
   /** Khoá truy cập trang quản trị. Bắt buộc cho /api/quan-tri/*. */
   QUAN_TRI_KHOA?: string;
 }
+
+/**
+ * Khoá Turnstile thử nghiệm chính thức của Cloudflare: luôn vượt qua kiểm tra.
+ *
+ * Dùng làm giá trị mặc định để chạy ở máy không phải cấu hình gì. Nhưng khoá
+ * công khai và khoá bí mật phải THÀNH CẶP — dùng khoá thử này kèm khoá bí mật
+ * thật thì mọi vé đều bị từ chối.
+ */
+export const KHOA_TURNSTILE_THU = '1x00000000000000000000AA';
 
 export const json = (data: unknown, status = 200): Response =>
   new Response(JSON.stringify(data), {

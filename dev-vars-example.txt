@@ -29,9 +29,17 @@ TURNSTILE_KHOA=1x0000000000000000000000000000000AA
 # Cloudflare Access để đăng nhập bằng Google thay cho khoá dùng chung.
 QUAN_TRI_KHOA=sinh-mot-chuoi-ngau-nhien-khac-vao-day
 
-# --- Biến lúc build (không phải bí mật) --------------------------------------
-# Khoá CÔNG KHAI của Turnstile, được nhúng thẳng vào HTML.
-# Đặt trong Cloudflare Pages › Environment variables (mục Build), không phải ở đây.
-# Bỏ trống thì dùng khoá thử nghiệm 1x00000000000000000000AA — nghĩa là ai cũng
-# gửi bình luận được, không có lớp chống thư rác nào.
-# PUBLIC_TURNSTILE_SITE_KEY=
+# Khoá CÔNG KHAI của Turnstile. Không bí mật — được gửi xuống trình duyệt qua
+# /api/phan-hoi để trang tự dựng widget.
+#
+# Đây là biến lúc CHẠY, đặt chung một chỗ với ba biến trên (trên Cloudflare thì
+# dùng `wrangler pages secret put` hoặc mục Variables and Secrets). Trước đây nó
+# là biến lúc BUILD tên PUBLIC_TURNSTILE_SITE_KEY — biến build và biến chạy nằm
+# ở hai chỗ khác nhau nên rất dễ đặt nhầm mà không có dấu hiệu gì.
+#
+# ⚠ Khoá công khai và khoá bí mật phải THÀNH CẶP. Đặt một cái thật mà để cái kia
+# là khoá thử thì mọi bình luận đều bị từ chối.
+#
+# Bỏ trống thì dùng khoá thử nghiệm 1x00000000000000000000AA — ai cũng gửi được,
+# không có lớp chống thư rác nào.
+TURNSTILE_SITE_KEY=1x00000000000000000000AA

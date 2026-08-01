@@ -79,25 +79,24 @@ try {
   bao('loi', 'Chatbot trả lời', e.message);
 }
 
-// ------------------------------------------------------------- khoá Turnstile
-try {
-  const { chu } = await lay(`/bai-viet/${BAI}/`);
-  const khop = chu.match(/data-sitekey="([^"]+)"/);
-  if (!khop) bao('loi', 'Khung bình luận', 'không thấy widget Turnstile trong HTML');
-  else if (khop[1] === KHOA_THU)
-    bao('y', 'Khoá Turnstile công khai', 'đang là khoá THỬ NGHIỆM — chưa đặt PUBLIC_TURNSTILE_SITE_KEY (biến build), hoặc đặt rồi mà chưa deploy lại');
-  else bao('ok', 'Khoá Turnstile công khai', khop[1].slice(0, 12) + '…');
-} catch (e) {
-  bao('loi', 'Khoá Turnstile công khai', e.message);
-}
+// ------------------------------------------------- bình luận + khoá Turnstile
+// Khoá bí mật thử nghiệm của Cloudflare CHẤP NHẬN MỌI VÉ, nên khi trang còn
+// dùng khoá thử thì phép thử chống spam bên dưới không nói lên điều gì.
+let dungKhoaThu = false;
 
-// ------------------------------------------------------------------ bình luận
 try {
   const { json } = await lay(`/api/phan-hoi?bai=${BAI}`);
   if (json && Array.isArray(json.danh_sach)) {
     bao('ok', 'Đọc bình luận', `${json.tong} ý kiến · ${json.so_thich} lượt thích · điểm ${json.diem_tb ?? '—'}`);
     if (json.danh_sach.some((d) => 'email' in d))
       bao('loi', 'Rò rỉ email', 'API công khai đang trả về cột email!');
+
+    const sk = json.turnstile_site_key;
+    dungKhoaThu = sk === KHOA_THU;
+    if (!sk) bao('loi', 'Khoá Turnstile công khai', 'API không trả về khoá');
+    else if (dungKhoaThu)
+      bao('y', 'Khoá Turnstile công khai', 'đang là khoá THỬ NGHIỆM — đặt biến TURNSTILE_SITE_KEY rồi deploy lại');
+    else bao('ok', 'Khoá Turnstile công khai', sk.slice(0, 12) + '…');
   } else {
     bao('loi', 'Đọc bình luận', json?.loi ?? 'phản hồi lạ');
   }
@@ -113,6 +112,10 @@ try {
   if (res.status === 403) bao('ok', 'Chống spam Turnstile', 'vé giả bị từ chối đúng như mong đợi');
   else if (res.status === 500 && /cấu hình/.test(json?.loi ?? ''))
     bao('y', 'Chống spam Turnstile', 'thiếu MUOI_BAM hoặc TURNSTILE_KHOA — bình luận đang tắt');
+  else if (res.ok && dungKhoaThu)
+    bao('y', 'Chống spam Turnstile', 'vé giả được chấp nhận — đúng như thiết kế của khoá thử nghiệm, chưa nói lên điều gì');
+  else if (res.ok)
+    bao('loi', 'Chống spam Turnstile', 'vé giả VẪN ĐƯỢC CHẤP NHẬN dù đang dùng khoá thật!');
   else bao('loi', 'Chống spam Turnstile', `HTTP ${res.status}: ${json?.loi ?? ''}`);
 } catch (e) {
   bao('loi', 'Chống spam Turnstile', e.message);
