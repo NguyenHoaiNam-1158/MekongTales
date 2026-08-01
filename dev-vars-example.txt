@@ -1,6 +1,37 @@
 # Chép file này thành .dev.vars để chạy thử ở máy.
 # .dev.vars đã nằm trong .gitignore, TUYỆT ĐỐI không commit.
+#
+# Khi chạy thật: đặt các biến này trong Cloudflare Pages →
+# Settings › Environment variables, và bấm "Encrypt" cho mọi giá trị bí mật.
 
+# --- Trợ lý AI ---------------------------------------------------------------
+# Để trống LLM_NHA_CUNG_CAP thì mặc định dùng Workers AI (không cần khoá).
 LLM_NHA_CUNG_CAP=gemini
 LLM_KHOA=dan-khoa-gemini-vao-day
 LLM_MODEL=gemini-2.5-flash
+
+# --- Bình luận & đánh giá ----------------------------------------------------
+
+# Muối để băm địa chỉ IP. BẮT BUỘC, thiếu là API bình luận từ chối chạy.
+# Băm IP mà không có muối thì dò ngược lại được, nên giá trị này phải bí mật
+# và phải đủ dài. Sinh một chuỗi ngẫu nhiên:
+#   node -e "console.log(crypto.randomUUID()+crypto.randomUUID())"
+# ĐỔI GIÁ TRỊ NÀY = mọi lượt thích cũ mất dấu và người cũ thích lại được.
+MUOI_BAM=sinh-chuoi-ngau-nhien-that-dai-roi-dan-vao-day
+
+# Khoá bí mật Turnstile (Cloudflare → Turnstile → thêm site mới).
+# Giá trị dưới đây là khoá THỬ NGHIỆM chính thức của Cloudflare: luôn hợp lệ,
+# chỉ dùng ở máy. Bản chạy thật phải thay bằng khoá riêng.
+TURNSTILE_KHOA=1x0000000000000000000000000000000AA
+
+# Khoá vào trang /quan-tri để duyệt bình luận. BẮT BUỘC, thiếu là không ai vào được.
+# Sinh giống MUOI_BAM ở trên. Đây là biện pháp tạm; kế hoạch là thay bằng
+# Cloudflare Access để đăng nhập bằng Google thay cho khoá dùng chung.
+QUAN_TRI_KHOA=sinh-mot-chuoi-ngau-nhien-khac-vao-day
+
+# --- Biến lúc build (không phải bí mật) --------------------------------------
+# Khoá CÔNG KHAI của Turnstile, được nhúng thẳng vào HTML.
+# Đặt trong Cloudflare Pages › Environment variables (mục Build), không phải ở đây.
+# Bỏ trống thì dùng khoá thử nghiệm 1x00000000000000000000AA — nghĩa là ai cũng
+# gửi bình luận được, không có lớp chống thư rác nào.
+# PUBLIC_TURNSTILE_SITE_KEY=

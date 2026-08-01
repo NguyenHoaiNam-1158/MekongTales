@@ -1,0 +1,27 @@
+# Cấu hình Cloudflare Pages cho phần chạy động (thư mục functions/).
+#
+# Phần tĩnh vẫn do Astro dựng ra thư mục dist/; file này chỉ khai báo các
+# "binding" mà Pages Functions cần: Workers AI cho chatbot, D1 cho bình luận.
+#
+# TRƯỚC KHI CHẠY LẦN ĐẦU:
+#   npx wrangler d1 create mekong-tales
+# Lệnh trên in ra database_id — chép vào đúng chỗ bên dưới, rồi tạo bảng:
+#   npx wrangler d1 execute mekong-tales --local  --file=db/schema.sql
+#   npx wrangler d1 execute mekong-tales --remote --file=db/schema.sql
+
+# Phải khớp tên dự án trên Cloudflare Pages (xem `wrangler pages project list`).
+name = "mekongtales"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "dist"
+
+# Chatbot RAG — không cần khoá, chạy thẳng trong hạ tầng Cloudflare.
+[ai]
+binding = "AI"
+
+# Bình luận, đánh giá sao và lượt thích.
+[[d1_databases]]
+binding = "DB"
+database_name = "mekong-tales"
+# Không phải thông tin bí mật: muốn dùng vẫn phải đăng nhập được tài khoản.
+# Xem lại bất cứ lúc nào bằng `wrangler d1 list`.
+database_id = "d0a15bce-b151-4b54-863b-0f0106137939"

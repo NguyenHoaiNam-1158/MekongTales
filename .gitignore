@@ -25,3 +25,6 @@ desktop.ini
 *.swp
 
 public/uploads/
+
+# Cau hinh Claude Code rieng tung may (launch.json thi dung chung duoc)
+.claude/settings.local.json
