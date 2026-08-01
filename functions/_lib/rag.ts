@@ -1,4 +1,5 @@
 import kho from '../../src/data/kho-tri-thuc.json';
+import cacTinh from '../../src/data/tinh-thanh.json';
 
 // Khai tối thiểu thay cho @cloudflare/workers-types, tránh đụng độ với kiểu DOM của Astro.
 export interface WorkersAI {
@@ -15,29 +16,50 @@ export interface Doan {
   url: string;
   loai: string;
   chuyen_muc: string | null;
+  tinh_slug: string | null;
   tac_gia: string | null;
   ngay_dang: string | null;
   tags: string[];
-  vector: number[];
+  v: string; // vector int8 mã hoá base64
 }
 
-export interface KetQua extends Doan {
+export interface KetQua extends Omit<Doan, 'v'> {
   diem: number;
 }
 
-const DOAN = kho.doan as unknown as Doan[];
+/** Giải nén vector base64 → int8. Chạy một lần lúc nạp module, không lặp mỗi request. */
+function giaiNen(b64: string): Int8Array {
+  const nhiPhan = atob(b64);
+  const ra = new Int8Array(nhiPhan.length);
+  // Int8Array tự quy đổi 0..255 về -128..127, không cần xử lý dấu bằng tay.
+  for (let i = 0; i < nhiPhan.length; i++) ra[i] = nhiPhan.charCodeAt(i);
+  return ra;
+}
 
-function cosine(a: number[], b: number[]): number {
+const DOAN = (kho.doan as unknown as Doan[]).map(({ v, ...meta }) => ({
+  ...meta,
+  vector: giaiNen(v),
+}));
+
+/**
+ * Vector trong kho đã chuẩn hoá về độ dài 1 rồi mới lượng tử hoá, nên chỉ cần
+ * chuẩn hoá vector câu hỏi là tích vô hướng bằng đúng cosine. Chia 127 để đưa
+ * int8 về lại thang [-1, 1].
+ */
+function chamDiem(cauHoi: Float64Array, doan: Int8Array): number {
   let tich = 0;
-  let chuanA = 0;
-  let chuanB = 0;
-  for (let i = 0; i < a.length; i++) {
-    tich += a[i] * b[i];
-    chuanA += a[i] * a[i];
-    chuanB += b[i] * b[i];
-  }
-  const mau = Math.sqrt(chuanA) * Math.sqrt(chuanB);
-  return mau === 0 ? 0 : tich / mau;
+  for (let i = 0; i < cauHoi.length; i++) tich += cauHoi[i] * doan[i];
+  return tich / 127;
+}
+
+function chuanHoa(v: number[]): Float64Array {
+  let chuan = 0;
+  for (const x of v) chuan += x * x;
+  chuan = Math.sqrt(chuan) || 1;
+
+  const ra = new Float64Array(v.length);
+  for (let i = 0; i < v.length; i++) ra[i] = v[i] / chuan;
+  return ra;
 }
 
 export async function tinhVectorCauHoi(cauHoi: string, ai: WorkersAI): Promise<number[]> {
@@ -48,8 +70,41 @@ export async function tinhVectorCauHoi(cauHoi: string, ai: WorkersAI): Promise<n
   return vector as number[];
 }
 
-export function timDoanLienQuan(vectorCauHoi: number[], soLuong = 4, nguong = 0.3): KetQua[] {
-  return DOAN.map((d) => ({ ...d, diem: cosine(vectorCauHoi, d.vector) }))
+/** Bỏ dấu tiếng Việt để so khớp tên tỉnh không phụ thuộc cách gõ. */
+const boDau = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd');
+
+// Tên tỉnh mới lẫn tỉnh cũ đều dẫn về slug tỉnh mới, để bắt được câu hỏi kiểu
+// "Mỹ Tho ở Tiền Giang có món gì" khi tư liệu đã gắn nhãn tỉnh Đồng Tháp.
+const TU_KHOA_TINH: { tu: string; slug: string }[] = cacTinh.flatMap((t) =>
+  [t.ten, ...t.sap_nhap].map((ten) => ({ tu: boDau(ten), slug: t.slug }))
+);
+
+/** Các tỉnh được nhắc tới trong câu hỏi. */
+export function nhanDienTinh(cauHoi: string): Set<string> {
+  const chu = boDau(cauHoi);
+  const ra = new Set<string>();
+  for (const { tu, slug } of TU_KHOA_TINH) if (chu.includes(tu)) ra.add(slug);
+  return ra;
+}
+
+// Điểm cộng cho đoạn thuộc đúng tỉnh được hỏi. Đủ để đẩy tư liệu đúng vùng lên
+// trước, nhưng không đủ để lấn át một đoạn khác hẳn về nội dung.
+const THUONG_DUNG_TINH = 0.08;
+
+export function timDoanLienQuan(vectorCauHoi: number[], cauHoi = '', soLuong = 4, nguong = 0.3): KetQua[] {
+  const q = chuanHoa(vectorCauHoi);
+  const tinhDuocHoi = nhanDienTinh(cauHoi);
+
+  return DOAN.map(({ vector, ...meta }) => {
+    const diem = chamDiem(q, vector);
+    const dungTinh = meta.tinh_slug !== null && tinhDuocHoi.has(meta.tinh_slug);
+    return { ...meta, diem: dungTinh ? diem + THUONG_DUNG_TINH : diem };
+  })
     .filter((d) => d.diem >= nguong)
     .sort((a, b) => b.diem - a.diem)
     .slice(0, soLuong);

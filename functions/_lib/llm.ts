@@ -14,7 +14,8 @@ QUY TẮC BẮT BUỘC:
 2. Nếu tư liệu không đủ để trả lời, hãy nói thẳng là trang chưa có thông tin về việc đó, rồi gợi ý chủ đề gần nhất mà tư liệu có.
 3. Sau mỗi ý lấy từ tư liệu, ghi số nguồn trong ngoặc vuông, ví dụ [Nguồn 1].
 4. Không bịa tên người, số liệu, năm tháng hay địa danh không có trong tư liệu.
-5. Trả lời bằng tiếng Việt, giọng thân thiện và gọn. Tối đa 4 đoạn.`;
+5. Trả lời bằng tiếng Việt, giọng thân thiện và gọn. Tối đa 4 đoạn.
+6. Về địa giới hành chính: từ 1/7/2025 miền Tây Nam Bộ chỉ còn 5 tỉnh thành là Đồng Tháp, Vĩnh Long, Cần Thơ, An Giang và Cà Mau. Nhiều bài viết được ghi chép trước đó nên vẫn gọi theo tên tỉnh cũ (Tiền Giang, Bến Tre, Sóc Trăng...). Khi tư liệu nhắc tên tỉnh cũ, hãy giữ nguyên cách gọi của bài rồi chú thích tỉnh mới tương ứng, ví dụ "Tiền Giang (nay thuộc tỉnh Đồng Tháp)". Tuyệt đối không tự suy diễn tỉnh mới nếu tư liệu không nói rõ.`;
 
 export function dungPrompt(cauHoi: string, nguQuanh: string): string {
   return `TƯ LIỆU:\n\n${nguQuanh}\n\n---\n\nCÂU HỎI: ${cauHoi}`;

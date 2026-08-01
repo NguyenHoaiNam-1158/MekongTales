@@ -59,7 +59,8 @@ export const onRequestPost = async ({ request, env }: NguCanh): Promise<Response
 
   try {
     const vector = await tinhVectorCauHoi(cauHoi, env.AI);
-    const lienQuan = timDoanLienQuan(vector);
+    // Truyền cả câu hỏi để bộ tìm kiếm ưu tiên tư liệu đúng tỉnh được nhắc tới.
+    const lienQuan = timDoanLienQuan(vector, cauHoi);
 
     if (!lienQuan.length) {
       return json({

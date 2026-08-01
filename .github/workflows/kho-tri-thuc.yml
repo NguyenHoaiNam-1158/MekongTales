@@ -1,0 +1,70 @@
+# Sinh lại kho tri thức của chatbot mỗi khi nội dung thay đổi.
+#
+# Trước đây phải chạy tay `npm run kho-tri-thuc`, nên bài đăng qua trang /admin
+# thì chatbot không biết bài đó tồn tại. Workflow này chạy tự động sau khi merge.
+#
+# CẦN CÀI TRƯỚC — Settings › Secrets and variables › Actions › New repository secret:
+#   CLOUDFLARE_ACCOUNT_ID   ID tài khoản Cloudflare
+#   CLOUDFLARE_API_TOKEN    token có quyền Workers AI: Read
+#
+# Thiếu hai secret này workflow sẽ báo lỗi rõ ràng chứ không âm thầm bỏ qua.
+
+name: Kho tri thức
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**'
+      - 'src/data/tinh-thanh.json'
+      - 'scripts/tao-kho-tri-thuc.mjs'
+  workflow_dispatch: # cho phép bấm chạy tay từ tab Actions
+
+# Nhiều bài merge liên tiếp thì chỉ chạy lần cuối.
+concurrency:
+  group: kho-tri-thuc
+  cancel-in-progress: true
+
+jobs:
+  sinh-lai:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # để commit lại file kho
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Kiểm tra secret
+        env:
+          TK: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MK: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TK" ] || [ -z "$MK" ]; then
+            echo "::error::Thiếu CLOUDFLARE_ACCOUNT_ID hoặc CLOUDFLARE_API_TOKEN trong repository secrets."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Sinh kho tri thức
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run kho-tri-thuc
+
+      - name: Commit nếu có thay đổi
+        run: |
+          if git diff --quiet -- src/data/kho-tri-thuc.json; then
+            echo "Kho không đổi, không commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/kho-tri-thuc.json
+          git commit -m "chore: sinh lai kho tri thuc cho chatbot"
+          git push
