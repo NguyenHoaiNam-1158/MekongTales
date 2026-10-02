@@ -18,7 +18,7 @@
     "dem-doan": "node scripts/dem-doan.mjs"
   },
   "dependencies": {
-    "astro": "^7.1.1",
+    "astro": "^7.3.5",
     "marked": "^18.0.7"
   },
   "devDependencies": {

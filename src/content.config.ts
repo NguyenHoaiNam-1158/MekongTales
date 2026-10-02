@@ -1,10 +1,56 @@
 import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { promises as fs } from 'node:fs';
+import { join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+function markdownFolder(base: string) {
+  return {
+    name: 'markdown-folder',
+    async load(context: any) {
+      const root = new URL(base, context.config.root);
+      const rootPath = fileURLToPath(root);
+      const files = await listMarkdown(rootPath);
+      context.store.clear();
+
+      for (const filePath of files) {
+        const entry = relative(rootPath, filePath).replaceAll('\\', '/');
+        const id = entry.replace(/\.md$/, '');
+        const contents = await fs.readFile(filePath, 'utf-8');
+        const entryType = context.entryTypes.get('.md');
+        const { body, data } = await entryType.getEntryInfo({
+          contents,
+          fileUrl: pathToFileURL(filePath),
+        });
+        const parsedData = await context.parseData({ id, data, filePath });
+
+        context.store.set({
+          id,
+          data: parsedData,
+          body,
+          filePath: relative(fileURLToPath(context.config.root), filePath).replaceAll('\\', '/'),
+          digest: context.generateDigest(contents),
+        });
+      }
+    },
+  };
+}
+
+async function listMarkdown(dir: string): Promise<string[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) return listMarkdown(path);
+      return entry.isFile() && entry.name.endsWith('.md') ? [path] : [];
+    })
+  );
+  return files.flat();
+}
 
 const chuyenMuc = z.enum(['ki-uc', 'am-thuc', 'lang-nghe', 'lich-su']);
 
 const baiViet = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/bai-viet' }),
+  loader: markdownFolder('./src/content/bai-viet'),
   schema: z.object({
     title: z.string(),
     mo_ta: z.string().max(200),
@@ -44,7 +90,7 @@ const baiViet = defineCollection({
 });
 
 const podcast = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/podcast' }),
+  loader: markdownFolder('./src/content/podcast'),
   schema: z.object({
     title: z.string(),
     mo_ta: z.string(),
@@ -59,7 +105,7 @@ const podcast = defineCollection({
 });
 
 const phongSu = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/phong-su' }),
+  loader: markdownFolder('./src/content/phong-su'),
   schema: z.object({
     title: z.string(),
     mo_ta: z.string(),
@@ -71,7 +117,7 @@ const phongSu = defineCollection({
 });
 
 const thanhVien = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/thanh-vien' }),
+  loader: markdownFolder('./src/content/thanh-vien'),
   schema: z.object({
     title: z.string(),
     vai_tro: z.string(),

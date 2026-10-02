@@ -1,12 +1,15 @@
 :root {
-  --paper: #f4ecdd;
-  --paper-2: #ebe0ca;
-  --ink: #211b15;
-  --ink-soft: #5f5647;
-  --river: #0f4c47;
-  --river-deep: #0a332f;
-  --marigold: #d19420;
-  --line: #d8ccb2;
+  --paper: #f7fbf7;
+  --paper-2: #e8f3ec;
+  --ink: #17322d;
+  --ink-soft: #526761;
+  --river: #0b7a75;
+  --river-deep: #07504e;
+  --marigold: #f2b632;
+  --line: #c9ded6;
+  --on-river: #f3fbf8;
+  --on-river-soft: #d6eee8;
+  --on-river-muted: #b8dcd4;
 
   --font-display: 'Lora', Georgia, serif;
   --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
